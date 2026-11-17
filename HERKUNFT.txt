@@ -1,0 +1,2 @@
+Abstammung: 25edcce 2026-11-15 Zusammenfuehrung fuer den Livegang: Dashboard raus, Rechtstexte, Stempelkarte raus
+Vorlage:    /Users/abedfalah/dev/gastronomie/OdisBowl

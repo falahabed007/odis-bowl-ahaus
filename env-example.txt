@@ -1,0 +1,25 @@
+# Odi's Bowl Ahaus – Umgebungsvariablen (nur Platzhalter, keine echten Werte)
+MONGODB_URI=mongodb+srv://USER:PASS@cluster0.xxxxx.mongodb.net/odis-bowl-ahaus
+
+# Stripe: NUR Direct Charges auf dem eigenen Stripe-Konto des Ladens.
+# Online-Zahlung ist erst aktiv, wenn ALLE DREI gesetzt sind und Stripe das Konto
+# freigibt (charges_enabled). Sonst bietet die Seite nur Barzahlung an.
+# Es gibt keinen Rueckweg auf das Plattformkonto; Connect-Konto-, Stichtag- und
+# Plattform-Webhook-Variablen anderer Standorte werden hier nicht gelesen.
+STRIPE_SECRET_KEY=sk_live_...              # Schluessel der FlueVate-Plattform (Aufrufe laufen mit { stripeAccount })
+STRIPE_DIREKT_KONTO=acct_...               # eigenes Stripe-Konto des Ladens (mit der Plattform verbunden)
+STRIPE_CONNECT_WEBHOOK_SECRET=whsec_...    # Signaturgeheimnis des Connect-Webhook-Endpunkts ("Ereignisse verbundener Konten"), URL /api/stripe-webhook
+
+RESEND_API_KEY=re_...
+EMAIL_FROM=Odi’s Bowl Ahaus <bestellungen@odis-ahaus.com>
+RESTAURANT_EMAIL=
+OWNER_EMAIL=
+INHABER_EMAIL=
+INHABER_CC=
+PRINTNODE_API_KEY=
+PRINTNODE_PRINTER_ID=
+ADMIN_PASSWORD=
+ADMIN_TOKEN_SECRET=
+JWT_SECRET=
+FRONTEND_URL=https://odis-ahaus.com
+PORT=3001
