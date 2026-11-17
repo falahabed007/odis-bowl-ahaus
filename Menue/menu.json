@@ -1,6 +1,6 @@
 {
   "_quelle": "Karte von Odi's Bowl Oelde übernommen (Stand 15.11.2026, dort: gedruckte Karten vom 13.10.2026, Getränkekarte 22.10.2026). Bowl 12,90 € und Wrap 8,90 € nach dem Ahaus-Shop odis-bowl-ahaus.de vom 17.11.2026 (Entscheidung Abed 17.11.2026); alle übrigen Preise und Regeln wie Oelde.",
-  "_hinweis": "Übernommen aus Odi's Bowl Oelde; Bowl- und Wrap-Preis für Ahaus angepasst (Ahaus-Shop odis-bowl-ahaus.de, 17.11.2026, Entscheidung Abed). Bowl-Karte: handschriftlich '1 €' an Schritt 2 = jede Zutat über 5 hinaus, '1,50' an Fleisch = Fleischaufschlag, gilt auch beim Wrap. Wrap Schritt 2 'aus unserer Frische-Theke' = dieselbe Liste wie die Bowl, ab der 4. Zutat +1 €. Saucen: Bowl- und Wrap-Karte weichen ab (Sriracha Mayo / Sriracha Hemp, Cinnamon Plum nur auf dem Wrap-Flyer); laut Abed dieselben Saucen, hier vereinigt, 'Sriracha Hemp' als Sriracha Mayo gelesen. Bowl und Wrap: eine Sauce inklusive, jede weitere +1 €; drei Toppings inklusive, jedes weitere +1 € (Abed, 14.10.2026). Druckfehler korrigiert: 'White Choclate', 'Chia-Puddig'. Getränke laut Getränkekarte von Abed (22.10.2026), alle 2,90 €; Menü +2 € nur bei Bowl und Wrap. \"Kirsche & Granatapfel\" ist laut Abed eine Sorte. Coca-Cola heißt \"Original\", weil die Ausverkauft-Prüfung per Namensanfang vergleicht und sonst Zero mitsperren würde. Cinnamon Plum am 22.10.2026 auf Abeds Wunsch gestrichen. Feld nur_abholung am Açaí entfernt: Ahaus bietet nur Abholung an, alles ist Abholung (Abed, 17.11.2026). Saucen und Toppings bei Bowl und Wrap seit 22.10.2026 alle inklusive, beliebig viele (Abed). Hot Special bei Bowl und Wrap seit 22.10.2026: Vegan und Fleisch zählen zusammen, das erste ist inklusive (auch Fleisch, kein Fleischaufschlag mehr), jedes weitere +2,50 € (Abed).",
+  "_hinweis": "Ahaus, Abed 17.11.2026 abends: Sauce bei Bowl und Wrap eine inklusive, jede weitere +1,00 € (in Oelde alle inklusive). Übernommen aus Odi's Bowl Oelde; Bowl- und Wrap-Preis für Ahaus angepasst (Ahaus-Shop odis-bowl-ahaus.de, 17.11.2026, Entscheidung Abed). Bowl-Karte: handschriftlich '1 €' an Schritt 2 = jede Zutat über 5 hinaus, '1,50' an Fleisch = Fleischaufschlag, gilt auch beim Wrap. Wrap Schritt 2 'aus unserer Frische-Theke' = dieselbe Liste wie die Bowl, ab der 4. Zutat +1 €. Saucen: Bowl- und Wrap-Karte weichen ab (Sriracha Mayo / Sriracha Hemp, Cinnamon Plum nur auf dem Wrap-Flyer); laut Abed dieselben Saucen, hier vereinigt, 'Sriracha Hemp' als Sriracha Mayo gelesen. Bowl und Wrap: eine Sauce inklusive, jede weitere +1 €; drei Toppings inklusive, jedes weitere +1 € (Abed, 14.10.2026). Druckfehler korrigiert: 'White Choclate', 'Chia-Puddig'. Getränke laut Getränkekarte von Abed (22.10.2026), alle 2,90 €; Menü +2 € nur bei Bowl und Wrap. \"Kirsche & Granatapfel\" ist laut Abed eine Sorte. Coca-Cola heißt \"Original\", weil die Ausverkauft-Prüfung per Namensanfang vergleicht und sonst Zero mitsperren würde. Cinnamon Plum am 22.10.2026 auf Abeds Wunsch gestrichen. Feld nur_abholung am Açaí entfernt: Ahaus bietet nur Abholung an, alles ist Abholung (Abed, 17.11.2026). Saucen und Toppings bei Bowl und Wrap seit 22.10.2026 alle inklusive, beliebig viele (Abed). Hot Special bei Bowl und Wrap seit 22.10.2026: Vegan und Fleisch zählen zusammen, das erste ist inklusive (auch Fleisch, kein Fleischaufschlag mehr), jedes weitere +2,50 € (Abed).",
   "_pos_start": "zusammenstellen",
   "_listen": {
     "frische": [
@@ -124,8 +124,10 @@
             },
             {
               "titel": "Sauce",
-              "hinweis": "alle inklusive, gern mehrere",
+              "hinweis": "eine inklusive, jede weitere +1,00 €",
               "min": 0,
+              "inklusive": 1,
+              "aufpreis": 1.0,
               "liste": "saucen"
             },
             {
@@ -186,8 +188,10 @@
             },
             {
               "titel": "Sauce",
-              "hinweis": "alle inklusive, gern mehrere",
+              "hinweis": "eine inklusive, jede weitere +1,00 €",
               "min": 0,
+              "inklusive": 1,
+              "aufpreis": 1.0,
               "liste": "saucen"
             },
             {
