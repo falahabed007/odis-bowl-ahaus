@@ -2243,7 +2243,7 @@ function toggleMobileMenu() {
 
         <div style="font-weight:bold; font-size:14px; margin-bottom:5px;">Zahlungsmethode:</div>
         <select id="c-zahlung" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid var(--odis-rahmen); border-radius:8px; background: var(--odis-flaeche); cursor:pointer;" onchange="togglePaymentLogos()">
-            <option value="stripe">Online bezahlen (Stripe)</option>
+            <option value="stripe">Online bezahlen (Karte, Apple Pay, Google Pay)</option>
             <option value="bar">Barzahlung bei Abholung</option>
         </select>
 
@@ -2359,6 +2359,10 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(function(r) { return r.json(); })
     .then(function(c) {
       window.ONLINE_ZAHLUNG_AKTIV = c.onlineZahlung === true;
+      // Beschriftung nach dem, was der Server wirklich anbietet (Klarna erst nach Freigabe durch Stripe)
+      var opt = document.querySelector('#c-zahlung option[value="stripe"]');
+      if (opt) opt.textContent = 'Online bezahlen (Karte, Apple Pay, Google Pay'
+        + ((c.zahlarten || []).indexOf('klarna') >= 0 ? ', Klarna' : '') + ')';
       applyZahlungsarten();
     })
     .catch(function() { /* bleibt bei Barzahlung */ });

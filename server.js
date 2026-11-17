@@ -473,6 +473,7 @@ app.get('/api/config', async (req, res) => {
     nurAbholung: NUR_ABHOLUNG,
     deliveryCities: {},
     onlineZahlung,
+    zahlarten: onlineZahlung ? zahlarten() : [],
   });
 });
 
@@ -556,8 +557,16 @@ function lieferungAbgelehnt(req, res) {
 // jeder Checkout. Ein Rueckweg auf das Plattformkonto existiert bewusst nicht.
 // Das Ergebnis haelt 5 Minuten (Fehler: 1 Minute), damit nicht jede Anfrage
 // einen Zusatzaufruf bei Stripe macht.
+// Klarna gibt es nur, wenn Stripe es fuer das Konto des Ladens freigeschaltet hat
+// (Faehigkeit klarna_payments). Wird mit der Kontopruefung alle 5 Minuten aufgefrischt.
+let klarnaAktiv = false;
+const zahlarten = () => (klarnaAktiv ? ['card', 'klarna'] : ['card']);
 const direktKontoBereit = stripeDirekt.erstelleKontoPruefer({
-  abrufen: async konto => (await getStripe().accounts.retrieve(konto)).charges_enabled === true,
+  abrufen: async konto => {
+    const a = await getStripe().accounts.retrieve(konto);
+    klarnaAktiv = (a.capabilities || {}).klarna_payments === 'active';
+    return a.charges_enabled === true;
+  },
   melden:  e => console.warn('Stripe-Konto des Ladens nicht abfragbar, Online-Zahlung aus:', e.message),
 });
 
@@ -724,14 +733,27 @@ app.post('/api/create-stripe-checkout', async (req, res) => {
       metadata: { orderNum: String(orderNum) },
       success_url: `${FRONTEND}?order=${orderNum}&t=${statusToken}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${FRONTEND}?payment=cancelled`,
-      // Nur Karte (Apple Pay und Google Pay laufen darueber), wie Amoura. Keine
-      // Plattformgebuehr und keine Weiterleitung: Die Zahlung gehoert dem Laden.
-      payment_method_types: ['card'],
+      // Karte (Apple Pay und Google Pay laufen darueber) und Klarna, wenn freigeschaltet -
+      // alles Zahlarten, die sofort bestaetigt werden. Keine Plattformgebuehr und keine
+      // Weiterleitung: Die Zahlung gehoert dem Laden.
+      payment_method_types: zahlarten(),
+      // Zahlseite nach 30 Minuten schliessen (Stripes Mindestwert): Eine abgebrochene
+      // Bestellung bleibt so nicht bis zu 24 Stunden offen.
+      expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
     };
 
     let session;
     try {
-      session = await getStripe().checkout.sessions.create(sessionOpts, { stripeAccount: konto });
+      try {
+        session = await getStripe().checkout.sessions.create(sessionOpts, { stripeAccount: konto });
+      } catch (e) {
+        // Lehnt Stripe Klarna ab (z. B. Betrag ausserhalb der Klarna-Grenzen), einmal nur
+        // mit Karte auf demselben Konto versuchen. Das ist kein Rueckweg auf ein anderes Konto.
+        if (sessionOpts.payment_method_types.length === 1) throw e;
+        console.warn('Checkout mit Klarna abgelehnt, zweiter Versuch nur mit Karte:', e.message);
+        sessionOpts.payment_method_types = ['card'];
+        session = await getStripe().checkout.sessions.create(sessionOpts, { stripeAccount: konto });
+      }
     } catch (e) {
       // Kein Rueckweg. Statt das Konto pauschal eine Minute zu sperren (dann koennte ein
       // einzelner kaputter Warenkorb die Kartenzahlung fuer alle Gaeste abschalten), wird
@@ -789,6 +811,9 @@ app.post('/api/stripe-webhook', async (req, res) => {
   try {
     if (event.type === 'checkout.session.completed') {
       const s = event.data.object;
+      // "completed" heisst nur: Der Gast ist durch die Zahlseite durch. Bezahlt ist erst
+      // payment_status 'paid' (bei Karte, Apple Pay, Google Pay und Klarna sofort der Fall).
+      if (s.payment_status !== 'paid') return res.json({ received: true });
       const order = await Order.findOneAndUpdate(
         { stripeSessionId: s.id, status: 'awaiting_payment' },
         { $set: { paymentStatus: 'paid', status: 'pending', stripePaymentIntentId: s.payment_intent } }, // wartet auf Admin-Bestätigung
@@ -1104,8 +1129,16 @@ app.post('/api/admin/login', async (req, res) => {
 });
 
 // ── Pending Bestellungen (für 5s Polling) ───────────────────────
+// Was die Kasse nie sehen darf: Online-Bestellungen, die (noch) nicht bezahlt sind.
+// Der Gast hat nur "Online bezahlen" gewaehlt und die Zahlseite geoeffnet, vielleicht
+// bricht er ab. Solche Bestellungen stehen als awaiting_payment in der Datenbank und
+// werden nach Abbruch oder Ablauf zu cancelled - beides ging frueher in der Liste mit
+// an das Geraet und erschien dort unter "Laeuft" (Abed, 17.11.2026). An die Kasse
+// kommt eine Online-Bestellung erst, wenn Stripe die Zahlung bestaetigt hat.
+const FUER_KASSE = { $nor: [{ payment: { $in: ['stripe', 'paypal'] }, paymentStatus: { $nin: ['paid', 'refunded'] } }] };
+
 app.get('/api/admin/orders/pending', auth, async (req, res) => {
-  try { res.json({ pending: await Order.find({ status:'pending' }).sort({ createdAt:1 }) }); }
+  try { res.json({ pending: await Order.find({ ...FUER_KASSE, status:'pending' }).sort({ createdAt:1 }) }); }
   catch(e) { res.status(500).json({ message:'Fehler' }); }
 });
 
@@ -1121,6 +1154,7 @@ app.get('/api/admin/orders', auth, async (req, res) => {
       const from = new Date(dateParam + 'T00:00:00+02:00');
       const to   = new Date(dateParam + 'T23:59:59+02:00');
       const orders = await Order.find({
+        ...FUER_KASSE,
         status:    { $nin: ['pending', 'awaiting_payment'] },
         createdAt: { $gte: from, $lte: to }
       }).sort({ createdAt: -1 });
@@ -1139,8 +1173,8 @@ app.get('/api/admin/orders', auth, async (req, res) => {
     }
 
     // ── Normalfall: heutige + laufende Bestellungen ──
-    const orders  = await Order.find({ status:{ $nin:['pending'] } }).sort({ createdAt:-1 }).limit(300);
-    const pending = await Order.find({ status:'pending' }).sort({ createdAt:1 });
+    const orders  = await Order.find({ ...FUER_KASSE, status:{ $nin:['pending','awaiting_payment'] } }).sort({ createdAt:-1 }).limit(300);
+    const pending = await Order.find({ ...FUER_KASSE, status:'pending' }).sort({ createdAt:1 });
     const today   = new Date(); today.setHours(0,0,0,0);
     const tod     = orders.filter(o => new Date(o.createdAt) >= today && o.status !== 'awaiting_payment');
     res.json({
@@ -2479,6 +2513,7 @@ app.get('/api/admin/history', auth, async (req, res) => {
     const padTo   = new Date(to   + 'T23:59:59Z'); padTo.setUTCDate(padTo.getUTCDate() + 1);
 
     const raw = await Order.find({
+      ...FUER_KASSE,
       status:    { $nin: ['awaiting_payment'] },
       createdAt: { $gte: padFrom, $lte: padTo }
     }).sort({ createdAt: -1 }).limit(3000);
