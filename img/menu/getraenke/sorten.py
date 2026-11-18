@@ -166,6 +166,11 @@ SORTEN = {
         {'hue': ZITRONE, 's_min': 0.25, 'ziel': 352, 's_faktor': 1.05, 'v_faktor': 0.88},
         {'hue': TEE, 's_min': 0.25, 'ziel': 356, 's_faktor': 1.0, 'v_faktor': 0.85},
     ]),
+    # Ahaus (Abed, 17.11.2026): Watermelon & Pineapple - Etikett melonenrosa, Tee hellrot
+    'ice-tea-watermelon-pineapple': ('ice-tea', SORTENBAND, [
+        {'hue': ZITRONE, 's_min': 0.25, 'ziel': 338, 's_faktor': 0.85, 'v_faktor': 1.0},
+        {'hue': TEE, 's_min': 0.25, 'ziel': 8, 's_faktor': 0.9, 'v_faktor': 1.05},
+    ]),
     'ice-tea-blueberry': ('ice-tea', SORTENBAND, [
         {'hue': ZITRONE, 's_min': 0.25, 'ziel': 228, 's_faktor': 0.95, 'v_faktor': 0.8},
         {'hue': TEE, 's_min': 0.25, 'ziel': 300, 's_faktor': 0.75, 'v_faktor': 0.62},

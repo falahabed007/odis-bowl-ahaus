@@ -1375,11 +1375,108 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
     .card-add-btn, .menue-hinweis, .mobile-cart-btn { transition: none; }
     .product-item[data-bk]:hover, .product-item:not([data-bk]):hover, .product-item[data-bk]:hover .card-img,
     .mobile-cart-btn:hover, .odis-btn-haupt:hover { transform: none; }
+    .liefer-umschalter button { transition: none; }
 }
+
+/* ── Abholung / Lieferung (Abed, 17.11.2026 abends) ────────── */
+.liefer-umschalter {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 0 0 12px;
+    background: var(--o-schiefer-tief); border: 1px solid var(--odis-rahmen); border-radius: 999px;
+}
+.liefer-umschalter button {
+    appearance: none; border: 0; border-radius: 999px; min-height: 40px; padding: 0 12px; cursor: pointer;
+    background: transparent; color: var(--odis-schrift-leise);
+    font: 600 14px/1 var(--o-text); letter-spacing: .01em;
+    transition: background .2s ease, color .2s ease;
+}
+.liefer-umschalter button:hover { color: var(--odis-schrift); }
+.liefer-umschalter button[aria-pressed="true"] { background: var(--o-gruen); color: #1b1a1e; }
+.liefer-umschalter button:disabled { opacity: .45; cursor: not-allowed; }
+#mobileCartPanel .liefer-umschalter button { min-height: 44px; font-size: 15px; }
+.liefer-hinweis { margin: 0 0 14px; font-size: 12.5px; line-height: 1.5; color: var(--odis-schrift-leise); }
+.liefer-hinweis[hidden] { display: none; }
+.liefer-hinweis p { margin: 0 0 8px; }
+.liefer-zonen { list-style: none; margin: 0 0 8px; padding: 0; border-top: 1px solid var(--o-linie); }
+.liefer-zonen li {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: baseline;
+    padding: 5px 0; border-bottom: 1px solid var(--o-linie); font-variant-numeric: tabular-nums;
+}
+.liefer-zonen li span:nth-child(2) { color: var(--odis-schrift); font-weight: 600; min-width: 4.2em; text-align: right; }
+.liefer-zonen li span:nth-child(3) { min-width: 5.4em; text-align: right; }
+.liefer-zonen li.kopf { padding: 4px 0; font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+.liefer-zonen li.kopf span { color: var(--odis-schrift-leise) !important; font-weight: 600 !important; }
+.liefer-warnung {
+    margin: 8px 0 0; padding: 9px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 600; line-height: 1.45;
+    background: rgba(242, 107, 91, .12); border: 1px solid rgba(242, 107, 91, .35); color: #ff9a8c;
+}
+#mobileCartCheckoutBtn.gesperrt { opacity: .45; cursor: not-allowed !important; }
+#mobileCartCheckoutBtn.gesperrt:hover { background: var(--o-gruen) !important; }
+#cart-summary-box .summe-zeile { display: flex; justify-content: space-between; gap: 10px; }
+#cart-summary-box .summe-zeile.leise { color: var(--odis-schrift-leise); }
+#cart-summary-box .summe-zeile.gesamt { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--o-linie); font-size: 15px; font-weight: 700; color: var(--odis-schrift); }
+
+/* Lieferadresse in der Kasse */
+#checkoutModal .liefer-adresse { margin: 4px 0 14px; padding: 0; border: 0; min-width: 0; }
+#checkoutModal .liefer-adresse[hidden] { display: none; }
+#checkoutModal .liefer-adresse legend {
+    padding: 0; margin-bottom: 8px; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--o-gruen);
+}
+.liefer-adresse-zeile { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); gap: 10px; }
+.liefer-feld { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.liefer-feld > span { font-size: 12px; color: var(--odis-schrift-leise); }
+#checkoutModal .liefer-feld input { width: 100%; padding: 12px; }
+.liefer-info { margin-top: 10px; font-size: 13px; line-height: 1.5; color: var(--odis-schrift-leise); }
+.liefer-info:empty { display: none; }
+.liefer-info.ok {
+    padding: 10px 12px; border-radius: 10px; color: var(--odis-schrift-leise);
+    background: rgba(163, 189, 52, .1); border: 1px solid rgba(163, 189, 52, .35);
+}
+.liefer-info.ok strong { display: block; color: var(--odis-schrift); font-weight: 600; }
+.liefer-info.ok span { display: block; font-size: 12.5px; }
+.liefer-info.fehler {
+    padding: 10px 12px; border-radius: 10px; color: #ff9a8c;
+    background: rgba(242, 107, 91, .12); border: 1px solid rgba(242, 107, 91, .35);
+}
+
+/* Açaí: sichtbar, aber nur im Laden */
+.product-item.nur-im-laden, .product-item.nur-im-laden:hover { cursor: default; transform: none; box-shadow: none; }
+.product-item[data-bk].nur-im-laden:hover { border-color: var(--o-linie); }
+.product-item.nur-im-laden:hover .card-img { transform: none; }
+.nur-im-laden-schild {
+    display: inline-flex; align-items: center; gap: .45rem; padding: 8px 14px; border-radius: 999px;
+    background: rgba(196, 138, 214, .14); border: 1px solid rgba(196, 138, 214, .5); color: #dcb3e8;
+    font-size: .82rem; font-weight: 700; letter-spacing: .02em; white-space: nowrap;
+}
+.nur-im-laden-schild svg { width: 16px; height: 16px; flex: none; }
+/* Schmale Karten (Handy, Bild links): Schild unter den Preis statt abgeschnitten */
+.product-item.nur-im-laden .card-footer { flex-wrap: wrap; row-gap: 10px; column-gap: 12px; }
+.product-item.nur-im-laden .nur-im-laden-schild { max-width: 100%; box-sizing: border-box; white-space: normal; line-height: 1.25; }
+@media (max-width: 560px) {
+    .nur-im-laden-schild { padding: 6px 10px; gap: .35rem; font-size: .74rem; letter-spacing: 0; }
+    .nur-im-laden-schild svg { width: 14px; height: 14px; }
+    .product-item[data-bk] .product-info p.nur-im-laden-text { margin: -4px 0 12px; font-size: .8rem; }
+}
+.product-item[data-bk] .product-info p.nur-im-laden-text {
+    -webkit-line-clamp: unset; margin: -8px 0 18px; font-size: .84rem; color: var(--odis-schrift-leise); font-style: italic;
+}
+
+/* Infoblock: Liefergebühr und Mindestbestellwert je Entfernung */
+.odis-info-ort .odis-info-text { margin-bottom: 1.1rem; }
+.odis-zonen { width: 100%; max-width: 32rem; margin: 0 0 .9rem; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.odis-zonen th, .odis-zonen td { padding: 12px 0; border-bottom: 1px solid var(--o-linie); text-align: right; font-weight: 400; }
+.odis-zonen th[scope="row"], .odis-zonen thead th:first-child { text-align: left; color: var(--odis-schrift-leise); }
+.odis-zonen thead th {
+    padding-top: 0; font-size: .7rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--odis-schrift-leise);
+}
+.odis-zonen td { padding-left: 16px; font-family: var(--o-display); font-size: 1.2rem; letter-spacing: .02em; color: var(--odis-schrift); }
+.odis-zonen td + td { color: var(--o-orange); }
+.odis-info-klein { margin: 0 0 1.8rem; max-width: 32rem; font-size: .85rem; line-height: 1.55; color: var(--odis-schrift-leise); }
 /* FARBEN:EIGEN:ENDE */
 </style>
   <!-- Zentrale Backend-Adresse, muss vor allen anderen Skripten stehen -->
   <script src="config.js"></script>
+  <!-- Liefergebiet nach Fahrstrecke: dieselbe Rechnung wie im Server (Daten: liefergebiet.json) -->
+  <script src="liefergebiet.js"></script>
 </head>
 <body>
 
@@ -1449,14 +1546,13 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
         <!-- Artikel Liste -->
         <div id="mobileCartItems" style="flex:1; overflow-y:auto; padding:16px;"></div>
 
-        <!-- Nur Abholung: Odi’s Bowl Ahaus liefert nicht, es gibt keine Lieferoption und keine Lieferorte -->
+        <!-- Abholung / Lieferung (Lieferung nach Fahrstrecke, siehe liefergebiet.js) -->
         <div style="padding:0 16px 12px 16px; flex-shrink:0;">
-            <div style="display:flex; border-radius:10px; overflow:hidden; border:2px solid var(--odis-akzent);">
-                <button id="cart-btn-pickup" onclick="setCartOption('pickup')" aria-pressed="true"
-                    style="flex:1; padding:10px; font-weight:bold; font-size:13px; border:none; cursor:pointer; background:var(--odis-akzent); color:var(--odis-auf-akzent);">
-                    Nur Abholung · Wallstraße 7
-                </button>
+            <div class="liefer-umschalter" role="group" aria-label="Abholung oder Lieferung">
+                <button type="button" id="cart-btn-pickup" onclick="setCartOption('pickup')" aria-pressed="true">Abholung</button>
+                <button type="button" id="cart-btn-delivery" onclick="setCartOption('delivery')" aria-pressed="false">Lieferung</button>
             </div>
+            <div id="liefer-hinweis-mobil" class="liefer-hinweis" aria-live="polite" hidden></div>
 
             <!-- Zusammenfassung -->
             <div id="cart-summary-box" style="margin-top:10px; background:var(--odis-flaeche); border:1px dashed var(--odis-rahmen); border-radius:8px; padding:10px; font-size:13px; line-height:1.7;"></div>
@@ -1497,12 +1593,12 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
         <div class="odis-hero-text">
           <p class="odis-kicker odis-hero-ort">Wallstraße 7 · Ahaus</p>
           <h1 id="odis-hero-titel"><span>Frisch<span class="punkt punkt-gruen">.</span></span> <span>Gesund<span class="punkt punkt-orange">.</span></span> <span>Lecker<span class="punkt punkt-violett">.</span></span></h1>
-          <p class="odis-hero-lead">Bowls, Wraps und Açaí – Schritt für Schritt so zusammengestellt, wie du sie magst.</p>
+          <p class="odis-hero-lead">Bowls und Wraps – Schritt für Schritt so zusammengestellt, wie du sie magst. Zum Abholen oder geliefert.</p>
           <a class="odis-btn-haupt" href="#zusammenstellen">Jetzt zusammenstellen
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3v14M4 11l6 6 6-6"/></svg></a>
           <dl class="odis-hero-fakten">
             <div><dt>Geöffnet</dt><dd>Mo–Fr 11–21 Uhr<br>Sa 12–21 · So 14–21 Uhr</dd></div>
-            <div><dt>Abholung</dt><dd>Bestellen und<br>selbst abholen</dd></div>
+            <div><dt>Lieferung</dt><dd>bis 9 km ab 1,50 €<br>oder selbst abholen</dd></div>
             <div><dt>Telefon</dt><dd><a href="tel:+4925618916861">02561 8916861</a></dd></div>
           </dl>
         </div>
@@ -1517,13 +1613,13 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
         <ol class="odis-schritte">
           <li><span class="odis-schritt-nr" aria-hidden="true">01</span>
             <h3>Basis wählen</h3>
-            <p>Bowl, Wrap oder Açaí – bei Bowl und Wrap dann die Grundlage, zum Beispiel Basmati-Reis oder frischen Blattsalat.</p></li>
+            <p>Bowl oder Wrap – dann die Grundlage, zum Beispiel Basmati-Reis oder frischen Blattsalat. Açaí-Bowls gibt’s bei uns im Laden.</p></li>
           <li><span class="odis-schritt-nr" aria-hidden="true">02</span>
             <h3>Zutaten zusammenstellen</h3>
             <p>Gemüse und Obst aus der Frische-Theke, dein Hot Special, Sauce und Topping. Der Preis rechnet mit.</p></li>
           <li><span class="odis-schritt-nr" aria-hidden="true">03</span>
-            <h3>Abholen</h3>
-            <p>Bestellung abschicken und bei uns in der Wallstraße 7 in Ahaus abholen.</p></li>
+            <h3>Abholen oder liefern lassen</h3>
+            <p>Bei uns in der Wallstraße 7 abholen – oder wir liefern, bis 9 km Fahrstrecke ab 1,50 €.</p></li>
         </ol>
       </div>
     </section>
@@ -1650,7 +1746,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 </style>
     <!-- KARTE:START – erzeugt aus Menue/menu.json von karte-einsetzen.js, nicht von Hand aendern -->
     <h2 class="category-title" id="zusammenstellen">Stell dir dein Essen zusammen</h2>
-    <p class="category-note">Bowl, Wrap oder Açaí wählen – dann Schritt für Schritt nach deinem Geschmack.</p>
+    <p class="category-note">Bowl oder Wrap wählen – dann Schritt für Schritt nach deinem Geschmack. Açaí-Bowls gibt es nur bei uns im Laden.</p>
     <div class="product-item" onclick="openBaukasten(this)" data-bk="B1" style="cursor: pointer;">
         <div class="product-info"><h3>Bowl</h3><p>Basic, bis zu 5 Zutaten aus der Frische-Theke, Hot Special, Sauce und Topping</p></div>
         <div class="price">12,90 €</div>
@@ -1674,10 +1770,6 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
         <div class="price">2,90 €</div>
     </div>
     <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
-        <div class="product-info"><h3>Proviant Bio Limonade Orange</h3></div>
-        <div class="price">2,90 €</div>
-    </div>
-    <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
         <div class="product-info"><h3>Proviant Bio Limonade Rhabarber</h3></div>
         <div class="price">2,90 €</div>
     </div>
@@ -1686,15 +1778,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
         <div class="price">2,90 €</div>
     </div>
     <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
-        <div class="product-info"><h3>Proviant Bio Schorle Kirsche &amp; Granatapfel</h3></div>
-        <div class="price">2,90 €</div>
-    </div>
-    <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
         <div class="product-info"><h3>Richard's Sun Ice Tea Peach</h3></div>
-        <div class="price">2,90 €</div>
-    </div>
-    <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
-        <div class="product-info"><h3>Richard's Sun Ice Tea Lemon</h3></div>
         <div class="price">2,90 €</div>
     </div>
     <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
@@ -1702,15 +1786,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
         <div class="price">2,90 €</div>
     </div>
     <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
-        <div class="product-info"><h3>Richard's Sun Ice Tea Blueberry</h3></div>
-        <div class="price">2,90 €</div>
-    </div>
-    <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
-        <div class="product-info"><h3>Gesaris Mineralwasser Classic</h3></div>
-        <div class="price">2,90 €</div>
-    </div>
-    <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
-        <div class="product-info"><h3>Gesaris Mineralwasser Still</h3></div>
+        <div class="product-info"><h3>Richard's Sun Ice Tea Watermelon &amp; Pineapple</h3></div>
         <div class="price">2,90 €</div>
     </div>
     <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
@@ -1718,10 +1794,14 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
         <div class="price">2,90 €</div>
     </div>
     <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
-        <div class="product-info"><h3>Pott's Cola Mix</h3></div>
+        <div class="product-info"><h3>Töftes Mineralwasser Classic</h3></div>
         <div class="price">2,90 €</div>
     </div>
-    <script>window.BAUKASTEN = {"B1":{"name":"Bowl","preis":12.9,"menue":{"aufpreis":2,"getraenke":["Coca-Cola Original","Coca-Cola Zero","Proviant Bio Limonade Orange","Proviant Bio Limonade Rhabarber","Proviant Bio Limonade Limette & Minze","Proviant Bio Schorle Kirsche & Granatapfel","Richard's Sun Ice Tea Peach","Richard's Sun Ice Tea Lemon","Richard's Sun Ice Tea Pomegranate","Richard's Sun Ice Tea Blueberry","Gesaris Mineralwasser Classic","Gesaris Mineralwasser Still","Gesaris Apfelschorle","Pott's Cola Mix"]},"schritte":[{"titel":"Basic","min":1,"max":1,"optionen":["Basmati-Reis","Frischer Blattsalatmix","Mixed-Bowl (halb/halb)"]},{"titel":"Gemüse & Obst","hinweis":"bis zu 5 inklusive, jede weitere +1,00 €","min":0,"inklusive":5,"aufpreis":1,"optionen":["Avocado-Hummus","Brokkoli","Bulgur","Champignons","Cherry-Tomaten","Cole Slaw Salat","Edamame","Edamame Spicy","Geb. Blumenkohl","Gurken","Hirtenkäse-Würfel","Jalapeños","Karottensalat","Kichererbsen","Kimchi","Mais","Mango-Würfel","Paprika","Rote Bete","Rotkohl","Süßkartoffeln","Tomatensalat","Wakame","Zwiebelsalat"]},{"titel":"Hot Special","hinweis":"bitte wählen · eins inklusive, jedes weitere +2,50 €","min":1,"inklusive":1,"aufpreis":2.5,"gruppen":[{"titel":"Vegan","optionen":["Beef Bites","Teriyaki Tofu","Peanuts Chicken"]},{"titel":"Fleisch","optionen":["Creamie Chicken","Curry Chicken","Teriyaki Chicken","Crispy Chicken","Chicken Bites"]}]},{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":0,"inklusive":1,"aufpreis":1,"optionen":["Avocado Sesam","Curry Mango","Erdnuss","Honig Senf","Hot Sriracha","Sriracha Mayo","Süß-Sauer","Roasted Sesam"]},{"titel":"Topping","hinweis":"alle inklusive, gern mehrere","min":0,"optionen":["Erdnüsse","Röstzwiebeln","Sesam","Granatapfel"]}]},"W1":{"name":"Wrap","preis":8.9,"menue":{"aufpreis":2,"getraenke":["Coca-Cola Original","Coca-Cola Zero","Proviant Bio Limonade Orange","Proviant Bio Limonade Rhabarber","Proviant Bio Limonade Limette & Minze","Proviant Bio Schorle Kirsche & Granatapfel","Richard's Sun Ice Tea Peach","Richard's Sun Ice Tea Lemon","Richard's Sun Ice Tea Pomegranate","Richard's Sun Ice Tea Blueberry","Gesaris Mineralwasser Classic","Gesaris Mineralwasser Still","Gesaris Apfelschorle","Pott's Cola Mix"]},"schritte":[{"titel":"Basic","min":1,"max":1,"optionen":["Frischer Blattsalatmix","Krautsalat","Mixed-Wrap (halb/halb)"]},{"titel":"Gemüse & Obst","hinweis":"bis zu 3 inklusive, jede weitere +1,00 €","min":0,"inklusive":3,"aufpreis":1,"optionen":["Avocado-Hummus","Brokkoli","Bulgur","Champignons","Cherry-Tomaten","Cole Slaw Salat","Edamame","Edamame Spicy","Geb. Blumenkohl","Gurken","Hirtenkäse-Würfel","Jalapeños","Karottensalat","Kichererbsen","Kimchi","Mais","Mango-Würfel","Paprika","Rote Bete","Rotkohl","Süßkartoffeln","Tomatensalat","Wakame","Zwiebelsalat"]},{"titel":"Hot Special","hinweis":"bitte wählen · eins inklusive, jedes weitere +2,50 €","min":1,"inklusive":1,"aufpreis":2.5,"gruppen":[{"titel":"Vegan","optionen":["Beef Bites","Peanuts Chicken"]},{"titel":"Fleisch","optionen":["Crispy Chicken","Chicken Stripes"]}]},{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":0,"inklusive":1,"aufpreis":1,"optionen":["Avocado Sesam","Curry Mango","Erdnuss","Honig Senf","Hot Sriracha","Sriracha Mayo","Süß-Sauer","Roasted Sesam"]},{"titel":"Topping","hinweis":"alle inklusive, gern mehrere","min":0,"optionen":["Erdnüsse","Röstzwiebeln","Sesam","Granatapfel"]}]},"A1":{"name":"Açaí-Bowl","groessen":{"Classic":8.9,"Large":9.9},"farbe":"#6b2c74","schritte":[{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":1,"inklusive":1,"aufpreis":1,"optionen":["Choco","Haselnuss","Pistazie","White Chocolate"]},{"titel":"Layer","hinweis":"zwei inklusive, jeder weitere +1,00 €","min":2,"inklusive":2,"aufpreis":1,"optionen":["Granola","Granola Choco","Peanut Butter","Chia-Pudding","Smashed Mango","Lotus Crumbles","Oreo Crumbles"]},{"titel":"Toppings","hinweis":"drei inklusive, jedes weitere +1,00 €","min":3,"inklusive":3,"aufpreis":1,"optionen":["Banane","Blaubeere","Erdbeere","Kiwi","Erdnüsse","Kakaonibs","Kokoschips"]}]}};</script>
+    <div class="product-item" onclick="openQuickAdd(this)" style="cursor: pointer;">
+        <div class="product-info"><h3>Töftes Mineralwasser Still</h3></div>
+        <div class="price">2,90 €</div>
+    </div>
+    <script>window.BAUKASTEN = {"B1":{"name":"Bowl","preis":12.9,"menue":{"aufpreis":2,"getraenke":["Coca-Cola Original","Coca-Cola Zero","Proviant Bio Limonade Rhabarber","Proviant Bio Limonade Limette & Minze","Richard's Sun Ice Tea Peach","Richard's Sun Ice Tea Pomegranate","Richard's Sun Ice Tea Watermelon & Pineapple","Gesaris Apfelschorle","Töftes Mineralwasser Classic","Töftes Mineralwasser Still"]},"schritte":[{"titel":"Basic","min":1,"max":1,"optionen":["Basmati-Reis","Frischer Blattsalatmix","Mixed-Bowl (halb/halb)"]},{"titel":"Gemüse & Obst","hinweis":"bis zu 5 inklusive, jede weitere +1,00 €","min":0,"inklusive":5,"aufpreis":1,"optionen":["Avocado-Hummus","Brokkoli","Bulgur","Champignons","Cherry-Tomaten","Cole Slaw Salat","Edamame","Edamame Spicy","Geb. Blumenkohl","Gurken","Hirtenkäse-Würfel","Jalapeños","Karottensalat","Kichererbsen","Kimchi","Mais","Mango-Würfel","Paprika","Rote Bete","Rotkohl","Süßkartoffeln","Tomatensalat","Wakame","Zwiebelsalat"]},{"titel":"Hot Special","hinweis":"bitte wählen · eins inklusive, jedes weitere +2,50 €","min":1,"inklusive":1,"aufpreis":2.5,"gruppen":[{"titel":"Vegan","optionen":["Beef Bites","Teriyaki Tofu","Peanuts Chicken"]},{"titel":"Fleisch","optionen":["Creamie Chicken","Curry Chicken","Teriyaki Chicken","Crispy Chicken","Chicken Bites"]}]},{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":0,"inklusive":1,"aufpreis":1,"optionen":["Avocado Sesam","Curry Mango","Erdnuss","Honig Senf","Hot Sriracha","Sriracha Mayo","Süß-Sauer","Roasted Sesam"]},{"titel":"Topping","hinweis":"alle inklusive, gern mehrere","min":0,"optionen":["Erdnüsse","Röstzwiebeln","Sesam","Granatapfel"]}]},"W1":{"name":"Wrap","preis":8.9,"menue":{"aufpreis":2,"getraenke":["Coca-Cola Original","Coca-Cola Zero","Proviant Bio Limonade Rhabarber","Proviant Bio Limonade Limette & Minze","Richard's Sun Ice Tea Peach","Richard's Sun Ice Tea Pomegranate","Richard's Sun Ice Tea Watermelon & Pineapple","Gesaris Apfelschorle","Töftes Mineralwasser Classic","Töftes Mineralwasser Still"]},"schritte":[{"titel":"Basic","min":1,"max":1,"optionen":["Frischer Blattsalatmix","Krautsalat","Mixed-Wrap (halb/halb)"]},{"titel":"Gemüse & Obst","hinweis":"bis zu 3 inklusive, jede weitere +1,00 €","min":0,"inklusive":3,"aufpreis":1,"optionen":["Avocado-Hummus","Brokkoli","Bulgur","Champignons","Cherry-Tomaten","Cole Slaw Salat","Edamame","Edamame Spicy","Geb. Blumenkohl","Gurken","Hirtenkäse-Würfel","Jalapeños","Karottensalat","Kichererbsen","Kimchi","Mais","Mango-Würfel","Paprika","Rote Bete","Rotkohl","Süßkartoffeln","Tomatensalat","Wakame","Zwiebelsalat"]},{"titel":"Hot Special","hinweis":"bitte wählen · eins inklusive, jedes weitere +2,50 €","min":1,"inklusive":1,"aufpreis":2.5,"gruppen":[{"titel":"Vegan","optionen":["Beef Bites","Peanuts Chicken"]},{"titel":"Fleisch","optionen":["Crispy Chicken","Chicken Stripes"]}]},{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":0,"inklusive":1,"aufpreis":1,"optionen":["Avocado Sesam","Curry Mango","Erdnuss","Honig Senf","Hot Sriracha","Sriracha Mayo","Süß-Sauer","Roasted Sesam"]},{"titel":"Topping","hinweis":"alle inklusive, gern mehrere","min":0,"optionen":["Erdnüsse","Röstzwiebeln","Sesam","Granatapfel"]}]},"A1":{"name":"Açaí-Bowl","groessen":{"Classic":8.9,"Large":9.9},"farbe":"#6b2c74","schritte":[{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":1,"inklusive":1,"aufpreis":1,"optionen":["Choco","Haselnuss","Pistazie","White Chocolate"]},{"titel":"Layer","hinweis":"zwei inklusive, jeder weitere +1,00 €","min":2,"inklusive":2,"aufpreis":1,"optionen":["Granola","Granola Choco","Peanut Butter","Chia-Pudding","Smashed Mango","Lotus Crumbles","Oreo Crumbles"]},{"titel":"Toppings","hinweis":"drei inklusive, jedes weitere +1,00 €","min":3,"inklusive":3,"aufpreis":1,"optionen":["Banane","Blaubeere","Erdbeere","Kiwi","Erdnüsse","Kakaonibs","Kokoschips"]}]}};</script>
     <!-- KARTE:ENDE -->
 
     </div>
@@ -1779,14 +1859,12 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 
         <h3 class="mobile-only-title" style="display:none; color:var(--odis-akzent); margin-top:0;">Mein Warenkorb</h3>
 
-        <!-- Nur Abholung: Odi’s Bowl Ahaus liefert nicht -->
-        <div class="btn-toggle" style="display: flex; gap: 8px; margin-bottom: 15px;">
-            <div id="option-pickup" role="button" tabindex="0" aria-pressed="true"
-                 onclick="selectOption('pickup')"
-                 style="flex: 1; padding: 10px; font-size: 13px; border-radius: 8px; cursor: pointer; border: 1px solid var(--odis-akzent); background: var(--odis-akzent); color: var(--odis-auf-akzent); text-align: center; font-weight: bold; transition: all 0.3s;">
-                Nur Abholung
-            </div>
+        <!-- Abholung / Lieferung (Lieferung nach Fahrstrecke, siehe liefergebiet.js) -->
+        <div class="liefer-umschalter" role="group" aria-label="Abholung oder Lieferung">
+            <button type="button" id="option-pickup" onclick="selectOption('pickup')" aria-pressed="true">Abholung</button>
+            <button type="button" id="option-delivery" onclick="selectOption('delivery')" aria-pressed="false">Lieferung</button>
         </div>
+        <div id="liefer-hinweis-seite" class="liefer-hinweis" aria-live="polite" hidden></div>
 
         <div id="cart-items" style="margin-bottom: 15px; font-size: 13px; color: var(--odis-schrift); max-height: 50vh; overflow-y: auto;">
             <div style="text-align:center; color:var(--odis-schrift-leise); padding:20px;">Warenkorb leer</div>
@@ -1816,25 +1894,36 @@ function closeMobileCartOverlay() {
     document.body.style.overflow = '';
 }
 
-// Odi’s Bowl Ahaus liefert nicht: jede Auswahl endet bei Abholung.
+// Abholung oder Lieferung im mobilen Warenkorb - derselbe Zustand wie in der Seitenleiste.
 function setCartOption(option, silent) {
-    currentSelection = 'pickup';
-    zeigeAuswahl();
+    selectOption(option);
     if (!silent) updateCartSummary();
 }
 
 function updateCartSummary() {
     const box = document.getElementById('cart-summary-box');
+    if (!box) return;
     const summeWaren = warenkorb.reduce((a, b) => a + b.preis, 0);
     if (warenkorb.length === 0) { box.innerHTML = ''; return; }
     // Die Vorlage zeigte hier "Gesamt" ohne Servicegebuehr - der Gast sah an der Kasse 0,99 € mehr.
     const sg = (typeof SERVICE_FEE === 'number') ? SERVICE_FEE : 0;
-    const euro = n => n.toFixed(2).replace('.', ',') + ' €';
-    box.innerHTML = `Warenwert: <b>${euro(summeWaren)}</b><br>Servicegebühr: ${euro(sg)}<br><span style="color:var(--odis-schrift); font-weight:bold; font-size:15px;">Gesamt: ${euro(summeWaren + sg)}</span>`;
+    // Lieferung: Gebuehr erst mit Adresse (Kasse); bis dahin "ab" der kleinsten Zone.
+    const lief = currentSelection === 'delivery';
+    const adresse = lief && typeof lieferAdresse === 'function' ? lieferAdresse() : null;
+    const fee = adresse && adresse.status === 'ok' ? adresse.gebuehr : 0;
+    let html = `<div class="summe-zeile"><span>Warenwert</span><b>${euroText(summeWaren)}</b></div>`;
+    if (lief) html += `<div class="summe-zeile leise"><span>Liefergebühr</span><span>${fee ? euroText(fee) : 'ab ' + euroText(lieferGebuehrAb()) + ' je nach Adresse'}</span></div>`;
+    html += `<div class="summe-zeile leise"><span>Servicegebühr</span><span>${euroText(sg)}</span></div>`;
+    html += `<div class="summe-zeile gesamt"><span>Gesamt</span><span>${lief && !fee ? 'ab ' : ''}${euroText(summeWaren + sg + (lief ? (fee || lieferGebuehrAb()) : 0))}</span></div>`;
+    box.innerHTML = html;
 }
 
 function goToCheckoutFromCart() {
     if (warenkorb.length === 0) return;
+    // Açaí im Warenkorb oder Mindestbestellwert fuer Lieferung nicht erreicht:
+    // der Hinweis steht schon unter dem Umschalter, hier nicht weiter.
+    const hindernis = lieferHindernis();
+    if (hindernis) { zeigeAuswahl(); alert(hindernis); return; }
     closeMobileCartOverlay();
     openUpsellModal();
 }
@@ -1888,6 +1977,8 @@ function toggleMobileCart() {}
 function renderWarenkorb() {
     const itemsContainer = document.getElementById('cart-items');
     const checkoutBtn = document.getElementById('checkout-btn');
+    // Hinweise zu Lieferung, Mindestbestellwert und Açaí folgen dem Warenkorb
+    if (typeof lieferAnzeigenAuffrischen === 'function') lieferAnzeigenAuffrischen();
 
     if (!itemsContainer) return;
 
@@ -1956,23 +2047,114 @@ function renderWarenkorb() {
 </script>
 
 <script>
-// Nur Abholung: Odi’s Bowl Ahaus liefert nicht (Abed, 17.11.2026). Abholung
-// ist voreingestellt und die einzige Auswahl; 'delivery' wird nirgends gesetzt.
+// Abholung oder Lieferung (Abed, 17.11.2026 abends). Abholung ist voreingestellt:
+// ohne Mindestbestellwert und ohne Liefergebuehr. Lieferung nach Fahrstrecke ab
+// Wallstrasse 7 - Zonen, Gebuehr und Mindestbestellwert je Zone stehen in
+// liefergebiet.json, dieselbe Datei rechnet der Server nach.
 let currentSelection = 'pickup';
 
+// Bis die Datei geladen ist, laesst sich nicht liefern; auf file:// laedt sie gar nicht.
+let LIEFERGEBIET = null;
+// Meldet der Server (alter Stand, Rueckbau) nurAbholung: true, gibt es keine Lieferung.
+let LIEFERUNG_MOEGLICH = true;
+fetch('liefergebiet.json')
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(d => {
+        LIEFERGEBIET = Liefergebiet.erstelle(d);
+        const liste = document.getElementById('strassen-liste');
+        if (liste) liste.innerHTML = LIEFERGEBIET.vorschlaege.map(k => `<option value="${k}"></option>`).join('');
+        zeigeAuswahl();
+        lieferAnzeigenAuffrischen();
+    })
+    .catch(e => console.error('Liefergebiet nicht geladen:', e.message));
+
+// Online nicht bestellbar, nur im Laden (menu.json: nur_im_laden). /api/config
+// liefert die Liste aus menu.json nach; bis dahin gilt diese. Der Warenkorb
+// fuehrt "Açaí-Bowl Classic" usw. - Vergleich per Namensanfang, wie im Server.
+let NUR_IM_LADEN_NAMEN = ['Açaí-Bowl'];
+const nurImLaden = name => NUR_IM_LADEN_NAMEN.some(n => String(name || '').startsWith(n));
+const euroText = n => n.toFixed(2).replace('.', ',') + ' €';
+const kmText = n => String(n).replace('.', ',');
+// Vor der Adresse: die guenstigste Zone (Gebuehr) und der kleinste Mindestbestellwert
+const lieferGebuehrAb = () => LIEFERGEBIET ? LIEFERGEBIET.zonen[0].gebuehr : 1.5;
+const lieferMindestAb = () => LIEFERGEBIET ? LIEFERGEBIET.mindestwertAb : 20;
+const lieferGrenzeKm = () => LIEFERGEBIET ? LIEFERGEBIET.grenzeKm : 9;
+
+// Die eingegebene Lieferadresse, nachgeschlagen - oder null bei Abholung.
+// Leere Felder (Kasse noch nicht ausgefuellt) zaehlen als "noch keine Adresse".
+function lieferAdresse() {
+    if (currentSelection !== 'delivery') return null;
+    if (!LIEFERGEBIET) return { status: 'nicht-geladen' };
+    const st = document.getElementById('c-strasse');
+    const nr = document.getElementById('c-hausnummer');
+    return LIEFERGEBIET.finde(st ? st.value : '', nr ? nr.value : '');
+}
+
+// Was einer Bestellung im Weg steht, als Satz fuer den Gast - oder ''.
+// Açaí: nie online. Lieferung: Mindestbestellwert der Zone (vor der Adresse
+// der kleinste, mit Adresse der ihrer Zone).
+function lieferHindernis() {
+    if (warenkorb.some(i => nurImLaden(i.name))) {
+        return 'Açaí-Bowls gibt es nur bei uns im Laden – online sind sie nicht bestellbar. Bitte nimm die Açaí-Bowl aus dem Warenkorb.';
+    }
+    if (currentSelection !== 'delivery') return '';
+    const summe = warenkorb.reduce((a, b) => a + b.preis, 0);
+    const a = lieferAdresse();
+    const mindest = a && a.status === 'ok' ? a.mindestwert : lieferMindestAb();
+    if (warenkorb.length && summe + 0.005 < mindest) {
+        return `Noch ${euroText(mindest - summe)} bis zum Mindestbestellwert von ${euroText(mindest)} für Lieferung`
+            + (a && a.status === 'ok' ? ` in deine Zone (bis ${kmText(a.bisKm)} km).` : '.');
+    }
+    return '';
+}
+
+// Kurze Uebersicht der Zonen, z. B. fuer den Hinweis unter dem Umschalter
+function zonenListeHtml() {
+    if (!LIEFERGEBIET) return '';
+    let von = 0;
+    return '<ul class="liefer-zonen"><li class="kopf" aria-hidden="true"><span>Entfernung</span><span>Gebühr</span><span>Mindestwert</span></li>'
+        + LIEFERGEBIET.zonen.map(z => {
+        const t = `<li><span>${von ? 'über ' + kmText(von) + ' bis ' : 'bis '}${kmText(z.bis_km)} km</span>`
+            + `<span>${euroText(z.gebuehr)}</span><span>${euroText(z.mindestwert)}</span></li>`;
+        von = z.bis_km;
+        return t;
+    }).join('') + '</ul>';
+}
+
 function zeigeAuswahl() {
-    ['option-pickup', 'cart-btn-pickup'].forEach(id => {
+    [['option-delivery', 'delivery'], ['option-pickup', 'pickup'],
+     ['cart-btn-delivery', 'delivery'], ['cart-btn-pickup', 'pickup']].forEach(([id, wert]) => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.style.background = 'var(--odis-akzent)';
-        el.style.color = 'var(--odis-auf-akzent)';
-        el.setAttribute('aria-pressed', 'true');
+        el.setAttribute('aria-pressed', String(currentSelection === wert));
+        if (wert === 'delivery') el.disabled = !LIEFERUNG_MOEGLICH;
+    });
+    const hindernis = lieferHindernis();
+    const weiter = document.getElementById('mobileCartCheckoutBtn');
+    if (weiter) weiter.classList.toggle('gesperrt', Boolean(hindernis));
+    ['liefer-hinweis-seite', 'liefer-hinweis-mobil'].forEach(id => {
+        const hinweis = document.getElementById(id);
+        if (!hinweis) return;
+        const lief = currentSelection === 'delivery';
+        hinweis.hidden = !lief && !hindernis;
+        hinweis.innerHTML = (lief
+            ? `<p>Lieferung bis ${kmText(lieferGrenzeKm())} km Fahrstrecke – Gebühr und Mindestbestellwert je nach Entfernung:</p>`
+              + zonenListeHtml()
+            : '')
+            + (hindernis ? `<p class="liefer-warnung">${hindernis}</p>` : '');
     });
 }
 
-function selectOption(option) {
-    currentSelection = 'pickup';
+// Alles neu zeichnen, was von Auswahl, Warenkorb oder Adresse abhaengt
+function lieferAnzeigenAuffrischen() {
     zeigeAuswahl();
+    if (typeof updateCartSummary === 'function') updateCartSummary();
+    if (typeof updateSummary === 'function') updateSummary();
+}
+
+function selectOption(option) {
+    currentSelection = option === 'delivery' && LIEFERUNG_MOEGLICH ? 'delivery' : 'pickup';
+    lieferAnzeigenAuffrischen();
 }
 document.addEventListener('DOMContentLoaded', zeigeAuswahl);
 </script>
@@ -2239,16 +2421,27 @@ function toggleMobileMenu() {
         </div>
         <input type="tel" id="c-telefon" placeholder="Telefonnummer *" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid var(--odis-rahmen); border-radius:8px; box-sizing:border-box;">
         <input type="email" id="c-email" placeholder="E-Mail (für Bestellbestätigung)" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid var(--odis-rahmen); border-radius:8px; box-sizing:border-box;">
-        <!-- Keine Adressfelder und keine Lieferorte: Odi’s Bowl Ahaus bietet nur Abholung an -->
+        <!-- Nur bei Lieferung: Straße + Hausnummer; Gebühr und Mindestbestellwert kommen aus liefergebiet.json -->
+        <fieldset id="address-fields" class="liefer-adresse" hidden>
+            <legend>Lieferadresse</legend>
+            <div class="liefer-adresse-zeile">
+                <label class="liefer-feld liefer-feld-strasse"><span>Straße</span>
+                    <input type="text" id="c-strasse" list="strassen-liste" placeholder="z. B. Marktstraße" autocomplete="off" oninput="lieferAnzeigenAuffrischen()"></label>
+                <label class="liefer-feld liefer-feld-nr"><span>Nr.</span>
+                    <input type="text" id="c-hausnummer" placeholder="12" autocomplete="off" inputmode="text" oninput="lieferAnzeigenAuffrischen()"></label>
+            </div>
+            <datalist id="strassen-liste"></datalist>
+            <div id="liefer-info" class="liefer-info" aria-live="polite"></div>
+        </fieldset>
 
         <div style="font-weight:bold; font-size:14px; margin-bottom:5px;">Zahlungsmethode:</div>
         <select id="c-zahlung" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid var(--odis-rahmen); border-radius:8px; background: var(--odis-flaeche); cursor:pointer;" onchange="togglePaymentLogos()">
             <option value="stripe">Online bezahlen (Karte, Apple Pay, Google Pay)</option>
-            <option value="bar">Barzahlung bei Abholung</option>
+            <option value="bar" class="bar-text">Barzahlung bei Abholung</option>
         </select>
 
         <!-- Tritt an die Stelle des Auswahlfelds, solange nur bar bezahlt wird -->
-        <div id="zahlung-hinweis" style="display:none;width:100%;box-sizing:border-box;padding:12px;margin-bottom:10px;
+        <div id="zahlung-hinweis" class="bar-text" style="display:none;width:100%;box-sizing:border-box;padding:12px;margin-bottom:10px;
              border:1px solid var(--odis-rahmen);border-radius:8px;background:var(--odis-flaeche);font-size:14px;">
           Barzahlung bei Abholung
         </div>
@@ -2359,6 +2552,15 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(function(r) { return r.json(); })
     .then(function(c) {
       window.ONLINE_ZAHLUNG_AKTIV = c.onlineZahlung === true;
+      // Lieferung: Ein Server-Stand ohne Lieferung (nurAbholung) schaltet sie hier ab.
+      // nurImLaden kommt aus menu.json - dieselbe Liste, mit der der Server prueft.
+      if (c.lieferung && Array.isArray(c.lieferung.nurImLaden) && c.lieferung.nurImLaden.length) {
+        NUR_IM_LADEN_NAMEN = c.lieferung.nurImLaden;
+      }
+      if (c.nurAbholung === true) {
+        LIEFERUNG_MOEGLICH = false;
+        selectOption('pickup');
+      }
       // Beschriftung nach dem, was der Server wirklich anbietet (Klarna erst nach Freigabe durch Stripe)
       var opt = document.querySelector('#c-zahlung option[value="stripe"]');
       if (opt) opt.textContent = 'Online bezahlen (Karte, Apple Pay, Google Pay'
@@ -2386,7 +2588,8 @@ function updateBestellBtn() {
 </script>
 
 <script>
-// Keine Lieferorte: Odi’s Bowl Ahaus bietet nur Abholung an (Server lehnt Lieferung ab).
+// Keine Lieferorte: Liefergebuehr und Mindestbestellwert nach Fahrstrecke,
+// LIEFERGEBIET (oben) schlaegt Strasse + Hausnummer nach. Der Server rechnet nach.
 const AREA_CONFIG = {};
 const SERVICE_FEE = 0.99;
 
@@ -2395,8 +2598,16 @@ document.getElementById('checkout-btn').onclick = function() {
         alert("Warenkorb ist leer!");
         return;
     }
+    const hindernis = lieferHindernis();
+    if (hindernis) { zeigeAuswahl(); alert(hindernis); return; }
     openUpsellModal();
 };
+
+// Barzahlung heisst je nach Auswahl "bei Abholung" oder "bei Lieferung"
+function barTextSetzen() {
+    const text = currentSelection === 'delivery' ? 'Barzahlung bei Lieferung (an der Tür)' : 'Barzahlung bei Abholung';
+    document.querySelectorAll('.bar-text').forEach(el => { el.textContent = text; });
+}
 
 function openCheckoutModal() {
     addFreePizzaIfNeeded();
@@ -2404,10 +2615,27 @@ function openCheckoutModal() {
 
     const modal = document.getElementById('checkoutModal');
     const modalTitle = document.getElementById('modal-title');
+    const lieferung = currentSelection === 'delivery';
 
     modal.style.display = 'flex';
-    modalTitle.innerText = "Kasse: Abholung";
+    modalTitle.innerText = lieferung ? "Kasse: Lieferung" : "Kasse: Abholung";
+    document.getElementById('address-fields').hidden = !lieferung;
+    barTextSetzen();
     updateSummary();
+}
+
+function lieferAdressText(t) {
+    const tel = ' Ruf uns gern an: 02561 8916861.';
+    switch (t.status) {
+        case 'ok': return `${t.strasse} ${t.nr}, ${t.ort} · Zone bis ${kmText(t.bisKm)} km · Liefergebühr ${euroText(t.gebuehr)} · Mindestbestellwert ${euroText(t.mindestwert)}`;
+        case 'strasse-fehlt': return 'Bitte gib deine Straße ein – die Liste schlägt Straßen aus dem Liefergebiet vor.';
+        case 'nr-fehlt': return 'Bitte gib deine Hausnummer ein.';
+        case 'mehrdeutig': return 'Diese Straße gibt es in mehreren Orten – bitte wähle den Ort aus der Liste.';
+        case 'strasse-unbekannt': return `Diese Straße kennen wir nicht oder sie liegt außerhalb unseres Liefergebiets (bis ${kmText(lieferGrenzeKm())} km Fahrstrecke).` + tel;
+        case 'nr-unbekannt': return 'Diese Hausnummer kennen wir nicht.' + tel;
+        case 'zu-weit': return `${t.strasse} ${t.nr} liegt ${kmText((t.meter / 1000).toFixed(1))} km Fahrstrecke entfernt – wir liefern bis ${kmText(lieferGrenzeKm())} km. Abholung geht natürlich.`;
+        default: return 'Das Liefergebiet konnte nicht geladen werden. Bitte lade die Seite neu.';
+    }
 }
 
 function closeCheckoutModal() {
@@ -2425,13 +2653,36 @@ function updateSummary() {
 
     let html = '';
 
-    // Nur Abholung: keine Liefergebühr, kein Mindestbestellwert, kein Rabatt
-    const gesamt = summeWaren + SERVICE_FEE;
+    // Lieferung: Gebuehr erst, wenn die Adresse im Liefergebiet liegt. Kein Rabatt.
+    const adresse = lieferAdresse();
+    const fee = adresse && adresse.status === 'ok' ? adresse.gebuehr : 0;
+    const info = document.getElementById('liefer-info');
+    if (info) {
+        const ok = adresse && adresse.status === 'ok';
+        const leer = adresse && (adresse.status === 'strasse-fehlt' || adresse.status === 'nr-fehlt');
+        if (ok) {
+            // Zweizeilig, Betraege ohne Umbruch vor dem €-Zeichen
+            const nb = t => euroText(t).replace(' €', '\u00a0€');
+            info.innerHTML = '';
+            const zeile1 = document.createElement('strong');
+            zeile1.textContent = `${adresse.strasse} ${adresse.nr}, ${adresse.ort}`;
+            const zeile2 = document.createElement('span');
+            zeile2.textContent = `Zone bis ${kmText(adresse.bisKm)}\u00a0km · Liefergebühr ${nb(adresse.gebuehr)} · Mindestbestellwert ${nb(adresse.mindestwert)}`;
+            info.append(zeile1, zeile2);
+        } else {
+            info.textContent = adresse ? lieferAdressText(adresse) : '';
+        }
+        info.className = 'liefer-info' + (ok ? ' ok' : leer ? '' : ' fehler');
+    }
+    const gesamt = summeWaren + fee + SERVICE_FEE;
     html += row('Speisen', summeWaren.toFixed(2).replace('.', ',') + ' €', true);
+    if (adresse) html += row('Liefergebühr', fee ? euroText(fee) : 'nach Adresse', true);
     html += row('Servicegebühr', SERVICE_FEE.toFixed(2).replace('.', ',') + ' €', true);
     html += '<div style="border-top:1px solid var(--odis-rahmen);margin:6px 0;"></div>';
     html += `<div style="display:flex;justify-content:space-between;font-weight:bold;font-size:15px;color:var(--odis-akzent);">
         <span>Gesamt</span><span>${gesamt.toFixed(2).replace('.', ',')} €</span></div>`;
+    const hindernis = lieferHindernis();
+    if (hindernis) html += `<div class="liefer-warnung" style="margin-top:8px;">${hindernis}</div>`;
 
     summary.innerHTML = html;
 }
@@ -2530,13 +2781,28 @@ async function processOrder() {
         return;
     }
 
-    // Nur Abholung: keine Lieferadresse, keine Liefergebühr, kein Rabatt
-    const address = "Abholung";
-    const fee = 0;
-    const kunde = { street: '', house: '', city: '' };
-    const modus = 'abholung';   // Odi’s Bowl Ahaus liefert nicht
+    // Açaí nie online; Lieferung: Adresse muss im Liefergebiet liegen und der
+    // Mindestbestellwert ihrer Zone erreicht sein. Gebuehr und Mindestbestellwert
+    // rechnet der Server noch einmal selbst nach. Kein Rabatt.
+    const hindernis = lieferHindernis();
+    if (hindernis) { alert(hindernis); return; }
+    let address = "Abholung";
+    let fee = 0;
+    let kunde = { street: '', house: '', city: '' };
+    if (currentSelection === 'delivery') {
+        const t = lieferAdresse();
+        if (!t || t.status !== 'ok') {
+            alert(lieferAdressText(t || {}));
+            document.getElementById(t && t.status === 'nr-fehlt' ? 'c-hausnummer' : 'c-strasse').focus();
+            return;
+        }
+        fee = t.gebuehr;
+        address = `${t.strasse} ${t.nr}, ${t.ort}`;
+        kunde = { street: t.strasse, house: t.nr, city: t.ort };
+    }
+    const modus = currentSelection === 'delivery' ? 'lieferung' : 'abholung';
     const rabatt = 0;
-    const finalTotal = summeWaren + SERVICE_FEE;
+    const finalTotal = summeWaren + fee + SERVICE_FEE;
     const now = new Date();
     const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
     const timePart = Date.now().toString().slice(-4);
@@ -2642,7 +2908,15 @@ async function processOrder() {
         });
         if (!barResp.ok) {
             // Keine Bestellung angelegt -- dann auch keinen Wartebildschirm zeigen.
-            console.error('Backend Fehler:', barResp.status, await barResp.text());
+            const fehlerText = await barResp.text();
+            console.error('Backend Fehler:', barResp.status, fehlerText);
+            // 400 = der Server lehnt die Bestellung begruendet ab (Adresse ausserhalb,
+            // Mindestbestellwert, Açaí): diese Begruendung zeigen statt "Verbindung".
+            if (barResp.status === 400) {
+                let meldung = '';
+                try { meldung = JSON.parse(fehlerText).message || ''; } catch(e) {}
+                if (meldung) { resetOrderButton(); alert(meldung); return; }
+            }
             throw new Error('HTTP ' + barResp.status);
         }
         const barData = await barResp.json();
@@ -2695,7 +2969,7 @@ function zeigeBestellZustand(icon, titel, html, warten, btn) {
 // Zustand "liegt beim Restaurant, wartet auf Annahme"
 function zeigeWarten() {
     const hinweis = warteDaten && warteDaten.betrag
-        ? '<br>💵 Bitte halte <strong>' + warteDaten.betrag + '</strong> bei Abholung bereit.'
+        ? '<br>💵 Bitte halte <strong>' + warteDaten.betrag + '</strong> ' + (warteDaten.mode === 'lieferung' ? 'bei Lieferung' : 'bei Abholung') + ' bereit.'
         : '<br>✅ Deine Zahlung ist eingegangen.';
     const anrede = warteDaten && warteDaten.name
         ? 'Vielen Dank, <strong>' + warteDaten.name + '</strong>! ' : '';
@@ -3907,13 +4181,23 @@ function confirmFamSelection() {
 </div>
 
 <!-- FARBEN:EIGEN:START -->
-<!-- ═══ ABHOLUNG UND ÖFFNUNGSZEITEN ═══ -->
+<!-- ═══ ABHOLUNG, LIEFERUNG UND ÖFFNUNGSZEITEN ═══ -->
 <section class="odis-info" id="info" aria-labelledby="info-titel">
   <div class="odis-wrap odis-info-raster">
     <div class="odis-info-ort">
-      <p class="odis-kicker">Abholung</p>
+      <p class="odis-kicker">Abholung &amp; Lieferung</p>
       <h2 class="odis-abschnitt-titel" id="info-titel">Wallstraße 7<br>48683 Ahaus</h2>
-      <p class="odis-info-text">Wir liefern nicht – du holst deine Bestellung direkt bei uns ab. Parken an der Straße.</p>
+      <p class="odis-info-text">Hol deine Bestellung bei uns ab – Parken an der Straße. Oder wir liefern bis 9&nbsp;km Fahrstrecke:</p>
+      <!-- Dieselben Zahlen wie liefergebiet.json (Server und Kasse rechnen damit) -->
+      <table class="odis-zonen">
+        <thead><tr><th scope="col">Entfernung</th><th scope="col">Liefergebühr</th><th scope="col">Mindestbestellwert</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">bis 2 km</th><td>1,50 €</td><td>20 €</td></tr>
+          <tr><th scope="row">über 2 bis 5 km</th><td>2,50 €</td><td>20 €</td></tr>
+          <tr><th scope="row">über 5 bis 9 km</th><td>5,50 €</td><td>40 €</td></tr>
+        </tbody>
+      </table>
+      <p class="odis-info-klein">Mindestbestellwert = Warenwert ohne Gebühren; Abholung ohne Mindestbestellwert. Açaí-Bowls gibt es nur bei uns im Laden.</p>
       <p class="odis-info-links">
         <a href="tel:+4925618916861"><i class="fas fa-phone" aria-hidden="true"></i> 02561 8916861</a>
         <a href="https://www.google.com/maps/search/?api=1&amp;query=Wallstra%C3%9Fe%207%2C%2048683%20Ahaus" target="_blank" rel="noopener"><i class="fas fa-location-arrow" aria-hidden="true"></i> Route planen</a>
@@ -3980,12 +4264,12 @@ LEGAL.impressum = {
 
 LEGAL.datenschutz = {
   title: "Datenschutzerkl&auml;rung",
-  text:  "<h3 style='color:var(--odis-akzent);margin:0 0 10px;overflow-wrap:anywhere'>1. Datenschutz auf einen Blick</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Allgemeine Hinweise</h4><p>Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können. Ausführliche Informationen zum Thema Datenschutz entnehmen Sie unserer unter diesem Text aufgeführten Datenschutzerklärung.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Datenerfassung auf dieser Website</h4><p style='margin:14px 0 4px'><strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong></p><p>Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem Abschnitt „Hinweis zur verantwortlichen Stelle“ in dieser Datenschutzerklärung entnehmen.</p><p style='margin:14px 0 4px'><strong>Wie erfassen wir Ihre Daten?</strong></p><p>Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen. Hierbei kann es sich z. B. um Daten handeln, die Sie in ein Kontaktformular eingeben.</p><p>Andere Daten werden automatisch oder nach Ihrer Einwilligung beim Besuch der Website durch unsere IT-Systeme erfasst. Das sind vor allem technische Daten (z. B. Internetbrowser, Betriebssystem oder Uhrzeit des Seitenaufrufs). Die Erfassung dieser Daten erfolgt automatisch, sobald Sie diese Website betreten.</p><p style='margin:14px 0 4px'><strong>Wofür nutzen wir Ihre Daten?</strong></p><p>Ein Teil der Daten wird erhoben, um eine fehlerfreie Bereitstellung der Website zu gewährleisten. Andere Daten können zur Analyse Ihres Nutzerverhaltens verwendet werden. Sofern über die Website Verträge geschlossen oder angebahnt werden können, werden die übermittelten Daten auch für Vertragsangebote, Bestellungen oder sonstige Auftragsanfragen verarbeitet.</p><p style='margin:14px 0 4px'><strong>Welche Rechte haben Sie bezüglich Ihrer Daten?</strong></p><p>Sie haben jederzeit das Recht, unentgeltlich Auskunft über Herkunft, Empfänger und Zweck Ihrer gespeicherten personenbezogenen Daten zu erhalten. Sie haben außerdem ein Recht, die Berichtigung oder Löschung dieser Daten zu verlangen. Wenn Sie eine Einwilligung zur Datenverarbeitung erteilt haben, können Sie diese Einwilligung jederzeit für die Zukunft widerrufen. Außerdem haben Sie das Recht, unter bestimmten Umständen die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen. Des Weiteren steht Ihnen ein Beschwerderecht bei der zuständigen Aufsichtsbehörde zu.</p><p>Hierzu sowie zu weiteren Fragen zum Thema Datenschutz können Sie sich jederzeit an uns wenden.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>2. Hosting</h3><p>Wir hosten die Inhalte unserer Website bei folgendem Anbieter:</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Externes Hosting</h4><p>Diese Website wird extern gehostet. Die personenbezogenen Daten, die auf dieser Website erfasst werden, werden auf den Servern des Hosters / der Hoster gespeichert. Hierbei kann es sich v. a. um IP-Adressen, Kontaktanfragen, Meta- und Kommunikationsdaten, Vertragsdaten, Kontaktdaten, Namen, Websitezugriffe und sonstige Daten, die über eine Website generiert werden, handeln.</p><p>Das externe Hosting erfolgt zum Zwecke der Vertragserfüllung gegenüber unseren potenziellen und bestehenden Kunden (Art. 6 Abs. 1 lit. b DSGVO) und im Interesse einer sicheren, schnellen und effizienten Bereitstellung unseres Online-Angebots durch einen professionellen Anbieter (Art. 6 Abs. 1 lit. f DSGVO). Sofern eine entsprechende Einwilligung abgefragt wurde, erfolgt die Verarbeitung ausschließlich auf Grundlage von Art. 6 Abs. 1 lit. a DSGVO und § 25 Abs. 1 TDDDG, soweit die Einwilligung die Speicherung von Cookies oder den Zugriff auf Informationen im Endgerät des Nutzers (z. B. Device-Fingerprinting) im Sinne des TDDDG umfasst. Die Einwilligung ist jederzeit widerrufbar.</p><p>Unser(e) Hoster wird bzw. werden Ihre Daten nur insoweit verarbeiten, wie dies zur Erfüllung seiner Leistungspflichten erforderlich ist und unsere Weisungen in Bezug auf diese Daten befolgen.</p><p>Wir setzen folgende(n) Hoster ein:</p><p>Abed Rachman Falah/ Fluevate<br>Zur Goldbrede 30<br>59269 Beckum<br>Deutschland</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Betrieb des Bestellsystems</h4><p>Diese Website und das Bestellsystem betreibt in unserem Auftrag Abed Rachman Falah / FlueVate, Zur Goldbrede 30, 59269 Beckum (im Folgenden „FlueVate“). FlueVate verarbeitet dabei die Daten, die Sie bei einer Bestellung, im Kundenkonto oder bei einer Online-Zahlung angeben, nur nach unseren Weisungen. Grundlage ist ein Vertrag über Auftragsverarbeitung nach Art. 28 DSGVO. Soweit wir Online-Zahlung anbieten, greift FlueVate in unserem Auftrag auch auf die Zahlungsdaten in unserem eigenen Stripe-Konto zu, soweit das für die Abwicklung der Bestellung, für Erstattungen und für unsere Abrechnung nötig ist. FlueVate ist dabei nicht Empfänger Ihrer Zahlung.</p><p>FlueVate setzt dafür folgende weitere Dienstleister ein:</p><ul style='margin:6px 0 8px 18px;line-height:1.85'><li>Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Deutschland: Server des Bestellsystems</li><li>MongoDB Limited, Building Two, Number One Ballsbridge, Dublin 4, Irland: Datenbank</li><li>Resend, Inc., 2261 Market Street #5039, San Francisco, CA 94114, USA: Versand der Bestell-E-Mails</li><li>GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA: Auslieferung dieser Website; dabei wird Ihre IP-Adresse verarbeitet</li></ul><p>Resend und GitHub verarbeiten Daten in den USA. Bei MongoDB ist ein Zugriff verbundener Unternehmen aus den USA möglich. Die Übermittlung stützt sich auf den Angemessenheitsbeschluss der EU-Kommission zum EU-US Data Privacy Framework, soweit der jeweilige Anbieter danach zertifiziert ist, im Übrigen auf die Standardvertragsklauseln der EU-Kommission.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>3. Allgemeine Hinweise und Pflichtinformationen</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Datenschutz</h4><p>Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend den gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.</p><p>Wenn Sie diese Website benutzen, werden verschiedene personenbezogene Daten erhoben. Personenbezogene Daten sind Daten, mit denen Sie persönlich identifiziert werden können. Die vorliegende Datenschutzerklärung erläutert, welche Daten wir erheben und wofür wir sie nutzen. Sie erläutert auch, wie und zu welchem Zweck das geschieht.</p><p>Wir weisen darauf hin, dass die Datenübertragung im Internet (z. B. bei der Kommunikation per E-Mail) Sicherheitslücken aufweisen kann. Ein lückenloser Schutz der Daten vor dem Zugriff durch Dritte ist nicht möglich.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Hinweis zur verantwortlichen Stelle</h4><p>Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:</p><p>Odi’s Bowl Ahaus<br>Inhaber: Mehmet Besir Bulut<br>Wallstraße 7<br>48683 Ahaus<br>Deutschland</p><p>Telefon: 02561 8916861<br>E-Mail: <a style='color:var(--odis-akzent);word-break:break-word' href='mailto:info@odis-bowl-ahaus.de'>info@odis-bowl-ahaus.de</a></p><p>Verantwortliche Stelle ist die natürliche oder juristische Person, die allein oder gemeinsam mit anderen über die Zwecke und Mittel der Verarbeitung von personenbezogenen Daten (z. B. Namen, E-Mail-Adressen o. Ä.) entscheidet.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Speicherdauer</h4><p>Soweit innerhalb dieser Datenschutzerklärung keine speziellere Speicherdauer genannt wurde, verbleiben Ihre personenbezogenen Daten bei uns, bis der Zweck für die Datenverarbeitung entfällt. Wenn Sie ein berechtigtes Löschersuchen geltend machen oder eine Einwilligung zur Datenverarbeitung widerrufen, werden Ihre Daten gelöscht, sofern wir keine anderen rechtlich zulässigen Gründe für die Speicherung Ihrer personenbezogenen Daten haben (z. B. steuer- oder handelsrechtliche Aufbewahrungsfristen); im letztgenannten Fall erfolgt die Löschung nach Fortfall dieser Gründe.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Allgemeine Hinweise zu den Rechtsgrundlagen der Datenverarbeitung auf dieser Website</h4><p>Sofern Sie in die Datenverarbeitung eingewilligt haben, verarbeiten wir Ihre personenbezogenen Daten auf Grundlage von Art. 6 Abs. 1 lit. a DSGVO bzw. Art. 9 Abs. 2 lit. a DSGVO, sofern besondere Datenkategorien nach Art. 9 Abs. 1 DSGVO verarbeitet werden. Im Falle einer ausdrücklichen Einwilligung in die Übertragung personenbezogener Daten in Drittstaaten erfolgt die Datenverarbeitung außerdem auf Grundlage von Art. 49 Abs. 1 lit. a DSGVO. Sofern Sie in die Speicherung von Cookies oder in den Zugriff auf Informationen in Ihr Endgerät (z. B. via Device-Fingerprinting) eingewilligt haben, erfolgt die Datenverarbeitung zusätzlich auf Grundlage von § 25 Abs. 1 TDDDG. Die Einwilligung ist jederzeit widerrufbar. Sind Ihre Daten zur Vertragserfüllung oder zur Durchführung vorvertraglicher Maßnahmen erforderlich, verarbeiten wir Ihre Daten auf Grundlage des Art. 6 Abs. 1 lit. b DSGVO. Des Weiteren verarbeiten wir Ihre Daten, sofern diese zur Erfüllung einer rechtlichen Verpflichtung erforderlich sind, auf Grundlage von Art. 6 Abs. 1 lit. c DSGVO. Die Datenverarbeitung kann ferner auf Grundlage unseres berechtigten Interesses nach Art. 6 Abs. 1 lit. f DSGVO erfolgen. Über die jeweils im Einzelfall einschlägigen Rechtsgrundlagen wird in den folgenden Absätzen dieser Datenschutzerklärung informiert.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Empfänger von personenbezogenen Daten</h4><p>Im Rahmen unserer Geschäftstätigkeit arbeiten wir mit verschiedenen externen Stellen zusammen. Dabei ist teilweise auch eine Übermittlung von personenbezogenen Daten an diese externen Stellen erforderlich. Wir geben personenbezogene Daten nur dann an externe Stellen weiter, wenn dies im Rahmen einer Vertragserfüllung erforderlich ist, wenn wir gesetzlich hierzu verpflichtet sind (z. B. Weitergabe von Daten an Steuerbehörden), wenn wir ein berechtigtes Interesse nach Art. 6 Abs. 1 lit. f DSGVO an der Weitergabe haben oder wenn eine sonstige Rechtsgrundlage die Datenweitergabe erlaubt. Beim Einsatz von Auftragsverarbeitern geben wir personenbezogene Daten unserer Kunden nur auf Grundlage eines gültigen Vertrags über Auftragsverarbeitung weiter. Im Falle einer gemeinsamen Verarbeitung wird ein Vertrag über gemeinsame Verarbeitung geschlossen.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Widerruf Ihrer Einwilligung zur Datenverarbeitung</h4><p>Viele Datenverarbeitungsvorgänge sind nur mit Ihrer ausdrücklichen Einwilligung möglich. Sie können eine bereits erteilte Einwilligung jederzeit widerrufen. Die Rechtmäßigkeit der bis zum Widerruf erfolgten Datenverarbeitung bleibt vom Widerruf unberührt.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Widerspruchsrecht gegen die Datenerhebung in besonderen Fällen sowie gegen Direktwerbung (Art. 21 DSGVO)</h4><p>WENN DIE DATENVERARBEITUNG AUF GRUNDLAGE VON ART. 6 ABS. 1 LIT. E ODER F DSGVO ERFOLGT, HABEN SIE JEDERZEIT DAS RECHT, AUS GRÜNDEN, DIE SICH AUS IHRER BESONDEREN SITUATION ERGEBEN, GEGEN DIE VERARBEITUNG IHRER PERSONENBEZOGENEN DATEN WIDERSPRUCH EINZULEGEN; DIES GILT AUCH FÜR EIN AUF DIESE BESTIMMUNGEN GESTÜTZTES PROFILING. DIE JEWEILIGE RECHTSGRUNDLAGE, AUF DENEN EINE VERARBEITUNG BERUHT, ENTNEHMEN SIE DIESER DATENSCHUTZERKLÄRUNG. WENN SIE WIDERSPRUCH EINLEGEN, WERDEN WIR IHRE BETROFFENEN PERSONENBEZOGENEN DATEN NICHT MEHR VERARBEITEN, ES SEI DENN, WIR KÖNNEN ZWINGENDE SCHUTZWÜRDIGE GRÜNDE FÜR DIE VERARBEITUNG NACHWEISEN, DIE IHRE INTERESSEN, RECHTE UND FREIHEITEN ÜBERWIEGEN ODER DIE VERARBEITUNG DIENT DER GELTENDMACHUNG, AUSÜBUNG ODER VERTEIDIGUNG VON RECHTSANSPRÜCHEN (WIDERSPRUCH NACH ART. 21 ABS. 1 DSGVO).</p><p>WERDEN IHRE PERSONENBEZOGENEN DATEN VERARBEITET, UM DIREKTWERBUNG ZU BETREIBEN, SO HABEN SIE DAS RECHT, JEDERZEIT WIDERSPRUCH GEGEN DIE VERARBEITUNG SIE BETREFFENDER PERSONENBEZOGENER DATEN ZUM ZWECKE DERARTIGER WERBUNG EINZULEGEN; DIES GILT AUCH FÜR DAS PROFILING, SOWEIT ES MIT SOLCHER DIREKTWERBUNG IN VERBINDUNG STEHT. WENN SIE WIDERSPRECHEN, WERDEN IHRE PERSONENBEZOGENEN DATEN ANSCHLIESSEND NICHT MEHR ZUM ZWECKE DER DIREKTWERBUNG VERWENDET (WIDERSPRUCH NACH ART. 21 ABS. 2 DSGVO).</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Beschwerderecht bei der zuständigen Aufsichtsbehörde</h4><p>Im Falle von Verstößen gegen die DSGVO steht den Betroffenen ein Beschwerderecht bei einer Aufsichtsbehörde, insbesondere in dem Mitgliedstaat ihres gewöhnlichen Aufenthalts, ihres Arbeitsplatzes oder des Orts des mutmaßlichen Verstoßes zu. Das Beschwerderecht besteht unbeschadet anderweitiger verwaltungsrechtlicher oder gerichtlicher Rechtsbehelfe.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Recht auf Datenübertragbarkeit</h4><p>Sie haben das Recht, Daten, die wir auf Grundlage Ihrer Einwilligung oder in Erfüllung eines Vertrags automatisiert verarbeiten, an sich oder an einen Dritten in einem gängigen, maschinenlesbaren Format aushändigen zu lassen. Sofern Sie die direkte Übertragung der Daten an einen anderen Verantwortlichen verlangen, erfolgt dies nur, soweit es technisch machbar ist.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Auskunft, Berichtigung und Löschung</h4><p>Sie haben im Rahmen der geltenden gesetzlichen Bestimmungen jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger und den Zweck der Datenverarbeitung und ggf. ein Recht auf Berichtigung oder Löschung dieser Daten. Hierzu sowie zu weiteren Fragen zum Thema personenbezogene Daten können Sie sich jederzeit an uns wenden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Recht auf Einschränkung der Verarbeitung</h4><p>Sie haben das Recht, die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen. Hierzu können Sie sich jederzeit an uns wenden. Das Recht auf Einschränkung der Verarbeitung besteht in folgenden Fällen:</p><ul style='margin:6px 0 8px 18px;line-height:1.85'><li>Wenn Sie die Richtigkeit Ihrer bei uns gespeicherten personenbezogenen Daten bestreiten, benötigen wir in der Regel Zeit, um dies zu überprüfen. Für die Dauer der Prüfung haben Sie das Recht, die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen.</li><li>Wenn die Verarbeitung Ihrer personenbezogenen Daten unrechtmäßig geschah/geschieht, können Sie statt der Löschung die Einschränkung der Datenverarbeitung verlangen.</li><li>Wenn wir Ihre personenbezogenen Daten nicht mehr benötigen, Sie sie jedoch zur Ausübung, Verteidigung oder Geltendmachung von Rechtsansprüchen benötigen, haben Sie das Recht, statt der Löschung die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen.</li><li>Wenn Sie einen Widerspruch nach Art. 21 Abs. 1 DSGVO eingelegt haben, muss eine Abwägung zwischen Ihren und unseren Interessen vorgenommen werden. Solange noch nicht feststeht, wessen Interessen überwiegen, haben Sie das Recht, die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen.</li></ul><p>Wenn Sie die Verarbeitung Ihrer personenbezogenen Daten eingeschränkt haben, dürfen diese Daten – von ihrer Speicherung abgesehen – nur mit Ihrer Einwilligung oder zur Geltendmachung, Ausübung oder Verteidigung von Rechtsansprüchen oder zum Schutz der Rechte einer anderen natürlichen oder juristischen Person oder aus Gründen eines wichtigen öffentlichen Interesses der Europäischen Union oder eines Mitgliedstaats verarbeitet werden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>SSL- bzw. TLS-Verschlüsselung</h4><p>Diese Seite nutzt aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte, wie zum Beispiel Bestellungen oder Anfragen, die Sie an uns als Seitenbetreiber senden, eine SSL- bzw. TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von „http://“ auf „https://“ wechselt und an dem Schloss-Symbol in Ihrer Browserzeile.</p><p>Wenn die SSL- bzw. TLS-Verschlüsselung aktiviert ist, können die Daten, die Sie an uns übermitteln, nicht von Dritten mitgelesen werden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Verschlüsselter Zahlungsverkehr auf dieser Website</h4><p>Besteht nach dem Abschluss eines kostenpflichtigen Vertrags eine Verpflichtung, uns Ihre Zahlungsdaten (z. B. Kontonummer bei Einzugsermächtigung) zu übermitteln, werden diese Daten zur Zahlungsabwicklung benötigt.</p><p>Der Zahlungsverkehr über die gängigen Zahlungsmittel (Visa/MasterCard, Lastschriftverfahren) erfolgt ausschließlich über eine verschlüsselte SSL- bzw. TLS-Verbindung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von „http://“ auf „https://“ wechselt und an dem Schloss-Symbol in Ihrer Browserzeile.</p><p>Bei verschlüsselter Kommunikation können Ihre Zahlungsdaten, die Sie an uns übermitteln, nicht von Dritten mitgelesen werden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Widerspruch gegen Werbe-E-Mails</h4><p>Der Nutzung von im Rahmen der Impressumspflicht veröffentlichten Kontaktdaten zur Übersendung von nicht ausdrücklich angeforderter Werbung und Informationsmaterialien wird hiermit widersprochen. Die Betreiber der Seiten behalten sich ausdrücklich rechtliche Schritte im Falle der unverlangten Zusendung von Werbeinformationen, etwa durch Spam-E-Mails, vor.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>4. Datenerfassung auf dieser Website</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Cookies</h4><p>Unsere Internetseiten verwenden so genannte „Cookies“. Cookies sind kleine Datenpakete und richten auf Ihrem Endgerät keinen Schaden an. Sie werden entweder vorübergehend für die Dauer einer Sitzung (Session-Cookies) oder dauerhaft (permanente Cookies) auf Ihrem Endgerät gespeichert. Session-Cookies werden nach Ende Ihres Besuchs automatisch gelöscht. Permanente Cookies bleiben auf Ihrem Endgerät gespeichert, bis Sie diese selbst löschen oder eine automatische Löschung durch Ihren Webbrowser erfolgt.</p><p>Cookies können von uns (First-Party-Cookies) oder von Drittunternehmen stammen (sog. Third-Party-Cookies). Third-Party-Cookies ermöglichen die Einbindung bestimmter Dienstleistungen von Drittunternehmen innerhalb von Webseiten (z. B. Cookies zur Abwicklung von Zahlungsdienstleistungen).</p><p>Cookies haben verschiedene Funktionen. Zahlreiche Cookies sind technisch notwendig, da bestimmte Webseitenfunktionen ohne diese nicht funktionieren würden (z. B. die Warenkorbfunktion oder die Anzeige von Videos). Andere Cookies können zur Auswertung des Nutzerverhaltens oder zu Werbezwecken verwendet werden.</p><p>Cookies, die zur Durchführung des elektronischen Kommunikationsvorgangs, zur Bereitstellung bestimmter, von Ihnen erwünschter Funktionen (z. B. für die Warenkorbfunktion) oder zur Optimierung der Website (z. B. Cookies zur Messung des Webpublikums) erforderlich sind (notwendige Cookies), werden auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO gespeichert, sofern keine andere Rechtsgrundlage angegeben wird. Der Websitebetreiber hat ein berechtigtes Interesse an der Speicherung von notwendigen Cookies zur technisch fehlerfreien und optimierten Bereitstellung seiner Dienste. Sofern eine Einwilligung zur Speicherung von Cookies und vergleichbaren Wiedererkennungstechnologien abgefragt wurde, erfolgt die Verarbeitung ausschließlich auf Grundlage dieser Einwilligung (Art. 6 Abs. 1 lit. a DSGVO und § 25 Abs. 1 TDDDG); die Einwilligung ist jederzeit widerrufbar.</p><p>Sie können Ihren Browser so einstellen, dass Sie über das Setzen von Cookies informiert werden und Cookies nur im Einzelfall erlauben, die Annahme von Cookies für bestimmte Fälle oder generell ausschließen sowie das automatische Löschen der Cookies beim Schließen des Browsers aktivieren. Bei der Deaktivierung von Cookies kann die Funktionalität dieser Website eingeschränkt sein.</p><p>Sofern weitere Cookies und Dienste auf dieser Website eingesetzt werden, können Sie dies dieser Datenschutzerklärung entnehmen.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Server-Log-Dateien</h4><p>Der Provider der Seiten erhebt und speichert automatisch Informationen in so genannten Server-Log-Dateien, die Ihr Browser automatisch an uns übermittelt. Dies sind:</p><ul style='margin:6px 0 8px 18px;line-height:1.85'><li>Browsertyp und Browserversion</li><li>verwendetes Betriebssystem</li><li>Referrer URL</li><li>Hostname des zugreifenden Rechners</li><li>Uhrzeit der Serveranfrage</li><li>IP-Adresse</li></ul><p>Eine Zusammenführung dieser Daten mit anderen Datenquellen wird nicht vorgenommen.</p><p>Die Erfassung dieser Daten erfolgt auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO. Der Websitebetreiber hat ein berechtigtes Interesse an der technisch fehlerfreien Darstellung und der Optimierung seiner Website – hierzu müssen die Server-Log-Files erfasst werden.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>5. eCommerce und Zahlungsanbieter</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Verarbeiten von Kunden- und Vertragsdaten</h4><p>Wir erheben, verarbeiten und nutzen personenbezogene Kunden- und Vertragsdaten zur Begründung, inhaltlichen Ausgestaltung und Änderung unserer Vertragsbeziehungen. Personenbezogene Daten über die Inanspruchnahme dieser Website (Nutzungsdaten) erheben, verarbeiten und nutzen wir nur, soweit dies erforderlich ist, um dem Nutzer die Inanspruchnahme des Dienstes zu ermöglichen oder abzurechnen. Rechtsgrundlage hierfür ist Art. 6 Abs. 1 lit. b DSGVO.</p><p>Die erhobenen Kundendaten werden nach Abschluss des Auftrags oder Beendigung der Geschäftsbeziehung und Ablauf der ggf. bestehenden gesetzlichen Aufbewahrungsfristen gelöscht. Gesetzliche Aufbewahrungsfristen bleiben unberührt.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Datenübermittlung bei Vertragsschluss für Online-Shops und Händler</h4><p>Wenn Sie Waren bei uns bestellen und online bezahlen, geben wir Ihre personenbezogenen Daten an den mit der Zahlungsabwicklung beauftragten Zahlungsdienstleister weiter. Es werden nur solche Daten herausgegeben, die der jeweilige Dienstleister zur Erfüllung seiner Aufgabe benötigt. Rechtsgrundlage hierfür ist Art. 6 Abs. 1 lit. b DSGVO, der die Verarbeitung von Daten zur Erfüllung eines Vertrags oder vorvertraglicher Maßnahmen gestattet.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Zahlungsdienste</h4><p>Wir binden Zahlungsdienste von Drittunternehmen auf unserer Website ein. Wenn Sie einen Kauf bei uns tätigen, werden Ihre Zahlungsdaten (z. B. Name, Zahlungssumme, Kontoverbindung, Kreditkartennummer) vom Zahlungsdienstleister zum Zwecke der Zahlungsabwicklung verarbeitet. Für diese Transaktionen gelten die jeweiligen Vertrags- und Datenschutzbestimmungen der jeweiligen Anbieter. Der Einsatz der Zahlungsdienstleister erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO (Vertragsabwicklung) sowie im Interesse eines möglichst reibungslosen, komfortablen und sicheren Zahlungsvorgangs (Art. 6 Abs. 1 lit. f DSGVO). Soweit für bestimmte Handlungen Ihre Einwilligung abgefragt wird, ist Art. 6 Abs. 1 lit. a DSGVO Rechtsgrundlage der Datenverarbeitung; Einwilligungen sind jederzeit für die Zukunft widerrufbar.</p><p>Folgende Zahlungsdienste / Zahlungsdienstleister setzen wir im Rahmen dieser Website ein:</p><p style='margin:14px 0 4px'><strong>Stripe</strong></p><p>Anbieter für Kunden innerhalb der EU ist die Stripe Payments Europe, Ltd.,1 Grand Canal Street Lower, Grand Canal Dock, Dublin, Irland (im Folgenden „Stripe“). Online-Zahlungen laufen über unser eigenes Stripe-Konto; Empfänger der Zahlung sind wir selbst.</p><p>Die Datenübertragung in die USA wird auf die Standardvertragsklauseln der EU-Kommission gestützt. Details finden Sie hier:<br><a style='color:var(--odis-akzent);word-break:break-word' href='https://stripe.com/de/privacy' target='_blank' rel='noopener noreferrer'>https://stripe.com/de/privacy</a> und<br><a style='color:var(--odis-akzent);word-break:break-word' href='https://stripe.com/de/guides/general-data-protection-regulation' target='_blank' rel='noopener noreferrer'>https://stripe.com/de/guides/general-data-protection-regulation</a>.</p><p>Details hierzu können Sie in der Datenschutzerklärung von Stripe unter folgendem Link nachlesen: <a style='color:var(--odis-akzent);word-break:break-word' href='https://stripe.com/de/privacy' target='_blank' rel='noopener noreferrer'>https://stripe.com/de/privacy</a>.</p>"
+  text:  "<h3 style='color:var(--odis-akzent);margin:0 0 10px;overflow-wrap:anywhere'>1. Datenschutz auf einen Blick</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Allgemeine Hinweise</h4><p>Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können. Ausführliche Informationen zum Thema Datenschutz entnehmen Sie unserer unter diesem Text aufgeführten Datenschutzerklärung.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Datenerfassung auf dieser Website</h4><p style='margin:14px 0 4px'><strong>Wer ist verantwortlich für die Datenerfassung auf dieser Website?</strong></p><p>Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten können Sie dem Abschnitt „Hinweis zur verantwortlichen Stelle“ in dieser Datenschutzerklärung entnehmen.</p><p style='margin:14px 0 4px'><strong>Wie erfassen wir Ihre Daten?</strong></p><p>Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen. Hierbei kann es sich z. B. um Daten handeln, die Sie in ein Kontaktformular eingeben.</p><p>Andere Daten werden automatisch oder nach Ihrer Einwilligung beim Besuch der Website durch unsere IT-Systeme erfasst. Das sind vor allem technische Daten (z. B. Internetbrowser, Betriebssystem oder Uhrzeit des Seitenaufrufs). Die Erfassung dieser Daten erfolgt automatisch, sobald Sie diese Website betreten.</p><p style='margin:14px 0 4px'><strong>Wofür nutzen wir Ihre Daten?</strong></p><p>Ein Teil der Daten wird erhoben, um eine fehlerfreie Bereitstellung der Website zu gewährleisten. Andere Daten können zur Analyse Ihres Nutzerverhaltens verwendet werden. Sofern über die Website Verträge geschlossen oder angebahnt werden können, werden die übermittelten Daten auch für Vertragsangebote, Bestellungen oder sonstige Auftragsanfragen verarbeitet.</p><p style='margin:14px 0 4px'><strong>Welche Rechte haben Sie bezüglich Ihrer Daten?</strong></p><p>Sie haben jederzeit das Recht, unentgeltlich Auskunft über Herkunft, Empfänger und Zweck Ihrer gespeicherten personenbezogenen Daten zu erhalten. Sie haben außerdem ein Recht, die Berichtigung oder Löschung dieser Daten zu verlangen. Wenn Sie eine Einwilligung zur Datenverarbeitung erteilt haben, können Sie diese Einwilligung jederzeit für die Zukunft widerrufen. Außerdem haben Sie das Recht, unter bestimmten Umständen die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen. Des Weiteren steht Ihnen ein Beschwerderecht bei der zuständigen Aufsichtsbehörde zu.</p><p>Hierzu sowie zu weiteren Fragen zum Thema Datenschutz können Sie sich jederzeit an uns wenden.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>2. Hosting</h3><p>Wir hosten die Inhalte unserer Website bei folgendem Anbieter:</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Externes Hosting</h4><p>Diese Website wird extern gehostet. Die personenbezogenen Daten, die auf dieser Website erfasst werden, werden auf den Servern des Hosters / der Hoster gespeichert. Hierbei kann es sich v. a. um IP-Adressen, Kontaktanfragen, Meta- und Kommunikationsdaten, Vertragsdaten, Kontaktdaten, Namen, Websitezugriffe und sonstige Daten, die über eine Website generiert werden, handeln.</p><p>Das externe Hosting erfolgt zum Zwecke der Vertragserfüllung gegenüber unseren potenziellen und bestehenden Kunden (Art. 6 Abs. 1 lit. b DSGVO) und im Interesse einer sicheren, schnellen und effizienten Bereitstellung unseres Online-Angebots durch einen professionellen Anbieter (Art. 6 Abs. 1 lit. f DSGVO). Sofern eine entsprechende Einwilligung abgefragt wurde, erfolgt die Verarbeitung ausschließlich auf Grundlage von Art. 6 Abs. 1 lit. a DSGVO und § 25 Abs. 1 TDDDG, soweit die Einwilligung die Speicherung von Cookies oder den Zugriff auf Informationen im Endgerät des Nutzers (z. B. Device-Fingerprinting) im Sinne des TDDDG umfasst. Die Einwilligung ist jederzeit widerrufbar.</p><p>Unser(e) Hoster wird bzw. werden Ihre Daten nur insoweit verarbeiten, wie dies zur Erfüllung seiner Leistungspflichten erforderlich ist und unsere Weisungen in Bezug auf diese Daten befolgen.</p><p>Wir setzen folgende(n) Hoster ein:</p><p>Abed Rachman Falah/ Fluevate<br>Zur Goldbrede 30<br>59269 Beckum<br>Deutschland</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Betrieb des Bestellsystems</h4><p>Diese Website und das Bestellsystem betreibt in unserem Auftrag Abed Rachman Falah / FlueVate, Zur Goldbrede 30, 59269 Beckum (im Folgenden „FlueVate“). FlueVate verarbeitet dabei die Daten, die Sie bei einer Bestellung, im Kundenkonto oder bei einer Online-Zahlung angeben, nur nach unseren Weisungen. Grundlage ist ein Vertrag über Auftragsverarbeitung nach Art. 28 DSGVO. Soweit wir Online-Zahlung anbieten, greift FlueVate in unserem Auftrag auch auf die Zahlungsdaten in unserem eigenen Stripe-Konto zu, soweit das für die Abwicklung der Bestellung, für Erstattungen und für unsere Abrechnung nötig ist. FlueVate ist dabei nicht Empfänger Ihrer Zahlung.</p><p>FlueVate setzt dafür folgende weitere Dienstleister ein:</p><ul style='margin:6px 0 8px 18px;line-height:1.85'><li>Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Deutschland: Server des Bestellsystems</li><li>MongoDB Limited, Building Two, Number One Ballsbridge, Dublin 4, Irland: Datenbank</li><li>Resend, Inc., 2261 Market Street #5039, San Francisco, CA 94114, USA: Versand der Bestell-E-Mails</li><li>GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA: Auslieferung dieser Website; dabei wird Ihre IP-Adresse verarbeitet</li></ul><p>Resend und GitHub verarbeiten Daten in den USA. Bei MongoDB ist ein Zugriff verbundener Unternehmen aus den USA möglich. Die Übermittlung stützt sich auf den Angemessenheitsbeschluss der EU-Kommission zum EU-US Data Privacy Framework, soweit der jeweilige Anbieter danach zertifiziert ist, im Übrigen auf die Standardvertragsklauseln der EU-Kommission.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>3. Allgemeine Hinweise und Pflichtinformationen</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Datenschutz</h4><p>Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend den gesetzlichen Datenschutzvorschriften sowie dieser Datenschutzerklärung.</p><p>Wenn Sie diese Website benutzen, werden verschiedene personenbezogene Daten erhoben. Personenbezogene Daten sind Daten, mit denen Sie persönlich identifiziert werden können. Die vorliegende Datenschutzerklärung erläutert, welche Daten wir erheben und wofür wir sie nutzen. Sie erläutert auch, wie und zu welchem Zweck das geschieht.</p><p>Wir weisen darauf hin, dass die Datenübertragung im Internet (z. B. bei der Kommunikation per E-Mail) Sicherheitslücken aufweisen kann. Ein lückenloser Schutz der Daten vor dem Zugriff durch Dritte ist nicht möglich.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Hinweis zur verantwortlichen Stelle</h4><p>Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website ist:</p><p>Odi’s Bowl Ahaus<br>Inhaber: Mehmet Besir Bulut<br>Wallstraße 7<br>48683 Ahaus<br>Deutschland</p><p>Telefon: 02561 8916861<br>E-Mail: <a style='color:var(--odis-akzent);word-break:break-word' href='mailto:info@odis-bowl-ahaus.de'>info@odis-bowl-ahaus.de</a></p><p>Verantwortliche Stelle ist die natürliche oder juristische Person, die allein oder gemeinsam mit anderen über die Zwecke und Mittel der Verarbeitung von personenbezogenen Daten (z. B. Namen, E-Mail-Adressen o. Ä.) entscheidet.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Speicherdauer</h4><p>Soweit innerhalb dieser Datenschutzerklärung keine speziellere Speicherdauer genannt wurde, verbleiben Ihre personenbezogenen Daten bei uns, bis der Zweck für die Datenverarbeitung entfällt. Wenn Sie ein berechtigtes Löschersuchen geltend machen oder eine Einwilligung zur Datenverarbeitung widerrufen, werden Ihre Daten gelöscht, sofern wir keine anderen rechtlich zulässigen Gründe für die Speicherung Ihrer personenbezogenen Daten haben (z. B. steuer- oder handelsrechtliche Aufbewahrungsfristen); im letztgenannten Fall erfolgt die Löschung nach Fortfall dieser Gründe.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Allgemeine Hinweise zu den Rechtsgrundlagen der Datenverarbeitung auf dieser Website</h4><p>Sofern Sie in die Datenverarbeitung eingewilligt haben, verarbeiten wir Ihre personenbezogenen Daten auf Grundlage von Art. 6 Abs. 1 lit. a DSGVO bzw. Art. 9 Abs. 2 lit. a DSGVO, sofern besondere Datenkategorien nach Art. 9 Abs. 1 DSGVO verarbeitet werden. Im Falle einer ausdrücklichen Einwilligung in die Übertragung personenbezogener Daten in Drittstaaten erfolgt die Datenverarbeitung außerdem auf Grundlage von Art. 49 Abs. 1 lit. a DSGVO. Sofern Sie in die Speicherung von Cookies oder in den Zugriff auf Informationen in Ihr Endgerät (z. B. via Device-Fingerprinting) eingewilligt haben, erfolgt die Datenverarbeitung zusätzlich auf Grundlage von § 25 Abs. 1 TDDDG. Die Einwilligung ist jederzeit widerrufbar. Sind Ihre Daten zur Vertragserfüllung oder zur Durchführung vorvertraglicher Maßnahmen erforderlich, verarbeiten wir Ihre Daten auf Grundlage des Art. 6 Abs. 1 lit. b DSGVO. Des Weiteren verarbeiten wir Ihre Daten, sofern diese zur Erfüllung einer rechtlichen Verpflichtung erforderlich sind, auf Grundlage von Art. 6 Abs. 1 lit. c DSGVO. Die Datenverarbeitung kann ferner auf Grundlage unseres berechtigten Interesses nach Art. 6 Abs. 1 lit. f DSGVO erfolgen. Über die jeweils im Einzelfall einschlägigen Rechtsgrundlagen wird in den folgenden Absätzen dieser Datenschutzerklärung informiert.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Empfänger von personenbezogenen Daten</h4><p>Im Rahmen unserer Geschäftstätigkeit arbeiten wir mit verschiedenen externen Stellen zusammen. Dabei ist teilweise auch eine Übermittlung von personenbezogenen Daten an diese externen Stellen erforderlich. Wir geben personenbezogene Daten nur dann an externe Stellen weiter, wenn dies im Rahmen einer Vertragserfüllung erforderlich ist, wenn wir gesetzlich hierzu verpflichtet sind (z. B. Weitergabe von Daten an Steuerbehörden), wenn wir ein berechtigtes Interesse nach Art. 6 Abs. 1 lit. f DSGVO an der Weitergabe haben oder wenn eine sonstige Rechtsgrundlage die Datenweitergabe erlaubt. Beim Einsatz von Auftragsverarbeitern geben wir personenbezogene Daten unserer Kunden nur auf Grundlage eines gültigen Vertrags über Auftragsverarbeitung weiter. Im Falle einer gemeinsamen Verarbeitung wird ein Vertrag über gemeinsame Verarbeitung geschlossen.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Widerruf Ihrer Einwilligung zur Datenverarbeitung</h4><p>Viele Datenverarbeitungsvorgänge sind nur mit Ihrer ausdrücklichen Einwilligung möglich. Sie können eine bereits erteilte Einwilligung jederzeit widerrufen. Die Rechtmäßigkeit der bis zum Widerruf erfolgten Datenverarbeitung bleibt vom Widerruf unberührt.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Widerspruchsrecht gegen die Datenerhebung in besonderen Fällen sowie gegen Direktwerbung (Art. 21 DSGVO)</h4><p>WENN DIE DATENVERARBEITUNG AUF GRUNDLAGE VON ART. 6 ABS. 1 LIT. E ODER F DSGVO ERFOLGT, HABEN SIE JEDERZEIT DAS RECHT, AUS GRÜNDEN, DIE SICH AUS IHRER BESONDEREN SITUATION ERGEBEN, GEGEN DIE VERARBEITUNG IHRER PERSONENBEZOGENEN DATEN WIDERSPRUCH EINZULEGEN; DIES GILT AUCH FÜR EIN AUF DIESE BESTIMMUNGEN GESTÜTZTES PROFILING. DIE JEWEILIGE RECHTSGRUNDLAGE, AUF DENEN EINE VERARBEITUNG BERUHT, ENTNEHMEN SIE DIESER DATENSCHUTZERKLÄRUNG. WENN SIE WIDERSPRUCH EINLEGEN, WERDEN WIR IHRE BETROFFENEN PERSONENBEZOGENEN DATEN NICHT MEHR VERARBEITEN, ES SEI DENN, WIR KÖNNEN ZWINGENDE SCHUTZWÜRDIGE GRÜNDE FÜR DIE VERARBEITUNG NACHWEISEN, DIE IHRE INTERESSEN, RECHTE UND FREIHEITEN ÜBERWIEGEN ODER DIE VERARBEITUNG DIENT DER GELTENDMACHUNG, AUSÜBUNG ODER VERTEIDIGUNG VON RECHTSANSPRÜCHEN (WIDERSPRUCH NACH ART. 21 ABS. 1 DSGVO).</p><p>WERDEN IHRE PERSONENBEZOGENEN DATEN VERARBEITET, UM DIREKTWERBUNG ZU BETREIBEN, SO HABEN SIE DAS RECHT, JEDERZEIT WIDERSPRUCH GEGEN DIE VERARBEITUNG SIE BETREFFENDER PERSONENBEZOGENER DATEN ZUM ZWECKE DERARTIGER WERBUNG EINZULEGEN; DIES GILT AUCH FÜR DAS PROFILING, SOWEIT ES MIT SOLCHER DIREKTWERBUNG IN VERBINDUNG STEHT. WENN SIE WIDERSPRECHEN, WERDEN IHRE PERSONENBEZOGENEN DATEN ANSCHLIESSEND NICHT MEHR ZUM ZWECKE DER DIREKTWERBUNG VERWENDET (WIDERSPRUCH NACH ART. 21 ABS. 2 DSGVO).</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Beschwerderecht bei der zuständigen Aufsichtsbehörde</h4><p>Im Falle von Verstößen gegen die DSGVO steht den Betroffenen ein Beschwerderecht bei einer Aufsichtsbehörde, insbesondere in dem Mitgliedstaat ihres gewöhnlichen Aufenthalts, ihres Arbeitsplatzes oder des Orts des mutmaßlichen Verstoßes zu. Das Beschwerderecht besteht unbeschadet anderweitiger verwaltungsrechtlicher oder gerichtlicher Rechtsbehelfe.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Recht auf Datenübertragbarkeit</h4><p>Sie haben das Recht, Daten, die wir auf Grundlage Ihrer Einwilligung oder in Erfüllung eines Vertrags automatisiert verarbeiten, an sich oder an einen Dritten in einem gängigen, maschinenlesbaren Format aushändigen zu lassen. Sofern Sie die direkte Übertragung der Daten an einen anderen Verantwortlichen verlangen, erfolgt dies nur, soweit es technisch machbar ist.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Auskunft, Berichtigung und Löschung</h4><p>Sie haben im Rahmen der geltenden gesetzlichen Bestimmungen jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger und den Zweck der Datenverarbeitung und ggf. ein Recht auf Berichtigung oder Löschung dieser Daten. Hierzu sowie zu weiteren Fragen zum Thema personenbezogene Daten können Sie sich jederzeit an uns wenden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Recht auf Einschränkung der Verarbeitung</h4><p>Sie haben das Recht, die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen. Hierzu können Sie sich jederzeit an uns wenden. Das Recht auf Einschränkung der Verarbeitung besteht in folgenden Fällen:</p><ul style='margin:6px 0 8px 18px;line-height:1.85'><li>Wenn Sie die Richtigkeit Ihrer bei uns gespeicherten personenbezogenen Daten bestreiten, benötigen wir in der Regel Zeit, um dies zu überprüfen. Für die Dauer der Prüfung haben Sie das Recht, die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen.</li><li>Wenn die Verarbeitung Ihrer personenbezogenen Daten unrechtmäßig geschah/geschieht, können Sie statt der Löschung die Einschränkung der Datenverarbeitung verlangen.</li><li>Wenn wir Ihre personenbezogenen Daten nicht mehr benötigen, Sie sie jedoch zur Ausübung, Verteidigung oder Geltendmachung von Rechtsansprüchen benötigen, haben Sie das Recht, statt der Löschung die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen.</li><li>Wenn Sie einen Widerspruch nach Art. 21 Abs. 1 DSGVO eingelegt haben, muss eine Abwägung zwischen Ihren und unseren Interessen vorgenommen werden. Solange noch nicht feststeht, wessen Interessen überwiegen, haben Sie das Recht, die Einschränkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen.</li></ul><p>Wenn Sie die Verarbeitung Ihrer personenbezogenen Daten eingeschränkt haben, dürfen diese Daten – von ihrer Speicherung abgesehen – nur mit Ihrer Einwilligung oder zur Geltendmachung, Ausübung oder Verteidigung von Rechtsansprüchen oder zum Schutz der Rechte einer anderen natürlichen oder juristischen Person oder aus Gründen eines wichtigen öffentlichen Interesses der Europäischen Union oder eines Mitgliedstaats verarbeitet werden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>SSL- bzw. TLS-Verschlüsselung</h4><p>Diese Seite nutzt aus Sicherheitsgründen und zum Schutz der Übertragung vertraulicher Inhalte, wie zum Beispiel Bestellungen oder Anfragen, die Sie an uns als Seitenbetreiber senden, eine SSL- bzw. TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von „http://“ auf „https://“ wechselt und an dem Schloss-Symbol in Ihrer Browserzeile.</p><p>Wenn die SSL- bzw. TLS-Verschlüsselung aktiviert ist, können die Daten, die Sie an uns übermitteln, nicht von Dritten mitgelesen werden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Verschlüsselter Zahlungsverkehr auf dieser Website</h4><p>Besteht nach dem Abschluss eines kostenpflichtigen Vertrags eine Verpflichtung, uns Ihre Zahlungsdaten (z. B. Kontonummer bei Einzugsermächtigung) zu übermitteln, werden diese Daten zur Zahlungsabwicklung benötigt.</p><p>Der Zahlungsverkehr über die gängigen Zahlungsmittel (Visa/MasterCard, Lastschriftverfahren) erfolgt ausschließlich über eine verschlüsselte SSL- bzw. TLS-Verbindung. Eine verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von „http://“ auf „https://“ wechselt und an dem Schloss-Symbol in Ihrer Browserzeile.</p><p>Bei verschlüsselter Kommunikation können Ihre Zahlungsdaten, die Sie an uns übermitteln, nicht von Dritten mitgelesen werden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Widerspruch gegen Werbe-E-Mails</h4><p>Der Nutzung von im Rahmen der Impressumspflicht veröffentlichten Kontaktdaten zur Übersendung von nicht ausdrücklich angeforderter Werbung und Informationsmaterialien wird hiermit widersprochen. Die Betreiber der Seiten behalten sich ausdrücklich rechtliche Schritte im Falle der unverlangten Zusendung von Werbeinformationen, etwa durch Spam-E-Mails, vor.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>4. Datenerfassung auf dieser Website</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Cookies</h4><p>Unsere Internetseiten verwenden so genannte „Cookies“. Cookies sind kleine Datenpakete und richten auf Ihrem Endgerät keinen Schaden an. Sie werden entweder vorübergehend für die Dauer einer Sitzung (Session-Cookies) oder dauerhaft (permanente Cookies) auf Ihrem Endgerät gespeichert. Session-Cookies werden nach Ende Ihres Besuchs automatisch gelöscht. Permanente Cookies bleiben auf Ihrem Endgerät gespeichert, bis Sie diese selbst löschen oder eine automatische Löschung durch Ihren Webbrowser erfolgt.</p><p>Cookies können von uns (First-Party-Cookies) oder von Drittunternehmen stammen (sog. Third-Party-Cookies). Third-Party-Cookies ermöglichen die Einbindung bestimmter Dienstleistungen von Drittunternehmen innerhalb von Webseiten (z. B. Cookies zur Abwicklung von Zahlungsdienstleistungen).</p><p>Cookies haben verschiedene Funktionen. Zahlreiche Cookies sind technisch notwendig, da bestimmte Webseitenfunktionen ohne diese nicht funktionieren würden (z. B. die Warenkorbfunktion oder die Anzeige von Videos). Andere Cookies können zur Auswertung des Nutzerverhaltens oder zu Werbezwecken verwendet werden.</p><p>Cookies, die zur Durchführung des elektronischen Kommunikationsvorgangs, zur Bereitstellung bestimmter, von Ihnen erwünschter Funktionen (z. B. für die Warenkorbfunktion) oder zur Optimierung der Website (z. B. Cookies zur Messung des Webpublikums) erforderlich sind (notwendige Cookies), werden auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO gespeichert, sofern keine andere Rechtsgrundlage angegeben wird. Der Websitebetreiber hat ein berechtigtes Interesse an der Speicherung von notwendigen Cookies zur technisch fehlerfreien und optimierten Bereitstellung seiner Dienste. Sofern eine Einwilligung zur Speicherung von Cookies und vergleichbaren Wiedererkennungstechnologien abgefragt wurde, erfolgt die Verarbeitung ausschließlich auf Grundlage dieser Einwilligung (Art. 6 Abs. 1 lit. a DSGVO und § 25 Abs. 1 TDDDG); die Einwilligung ist jederzeit widerrufbar.</p><p>Sie können Ihren Browser so einstellen, dass Sie über das Setzen von Cookies informiert werden und Cookies nur im Einzelfall erlauben, die Annahme von Cookies für bestimmte Fälle oder generell ausschließen sowie das automatische Löschen der Cookies beim Schließen des Browsers aktivieren. Bei der Deaktivierung von Cookies kann die Funktionalität dieser Website eingeschränkt sein.</p><p>Sofern weitere Cookies und Dienste auf dieser Website eingesetzt werden, können Sie dies dieser Datenschutzerklärung entnehmen.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Server-Log-Dateien</h4><p>Der Provider der Seiten erhebt und speichert automatisch Informationen in so genannten Server-Log-Dateien, die Ihr Browser automatisch an uns übermittelt. Dies sind:</p><ul style='margin:6px 0 8px 18px;line-height:1.85'><li>Browsertyp und Browserversion</li><li>verwendetes Betriebssystem</li><li>Referrer URL</li><li>Hostname des zugreifenden Rechners</li><li>Uhrzeit der Serveranfrage</li><li>IP-Adresse</li></ul><p>Eine Zusammenführung dieser Daten mit anderen Datenquellen wird nicht vorgenommen.</p><p>Die Erfassung dieser Daten erfolgt auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO. Der Websitebetreiber hat ein berechtigtes Interesse an der technisch fehlerfreien Darstellung und der Optimierung seiner Website – hierzu müssen die Server-Log-Files erfasst werden.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>5. eCommerce und Zahlungsanbieter</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Verarbeiten von Kunden- und Vertragsdaten</h4><p>Wir erheben, verarbeiten und nutzen personenbezogene Kunden- und Vertragsdaten zur Begründung, inhaltlichen Ausgestaltung und Änderung unserer Vertragsbeziehungen. Personenbezogene Daten über die Inanspruchnahme dieser Website (Nutzungsdaten) erheben, verarbeiten und nutzen wir nur, soweit dies erforderlich ist, um dem Nutzer die Inanspruchnahme des Dienstes zu ermöglichen oder abzurechnen. Rechtsgrundlage hierfür ist Art. 6 Abs. 1 lit. b DSGVO.</p><p>Bei einer Bestellung über diese Website sind das insbesondere Vor- und Nachname, Telefonnummer, E-Mail-Adresse, Bestellinhalt, Zahlungsart und Anmerkungen sowie – wenn Sie Lieferung wählen – Ihre Lieferadresse (Straße, Hausnummer, Ort). Die Lieferadresse verwenden wir, um die Bestellung auszuliefern und um Liefergebühr und Mindestbestellwert nach der Fahrstrecke zu bestimmen. Die Fahrstrecke wird aus einer bei uns hinterlegten Adressliste (Kartendaten von OpenStreetMap) ermittelt; Ihre Adresse wird dafür nicht an Dritte übermittelt.</p><p>Die erhobenen Kundendaten werden nach Abschluss des Auftrags oder Beendigung der Geschäftsbeziehung und Ablauf der ggf. bestehenden gesetzlichen Aufbewahrungsfristen gelöscht. Gesetzliche Aufbewahrungsfristen bleiben unberührt.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Datenübermittlung bei Vertragsschluss für Online-Shops und Händler</h4><p>Wenn Sie Waren bei uns bestellen und online bezahlen, geben wir Ihre personenbezogenen Daten an den mit der Zahlungsabwicklung beauftragten Zahlungsdienstleister weiter. Es werden nur solche Daten herausgegeben, die der jeweilige Dienstleister zur Erfüllung seiner Aufgabe benötigt. Rechtsgrundlage hierfür ist Art. 6 Abs. 1 lit. b DSGVO, der die Verarbeitung von Daten zur Erfüllung eines Vertrags oder vorvertraglicher Maßnahmen gestattet.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>Zahlungsdienste</h4><p>Wir binden Zahlungsdienste von Drittunternehmen auf unserer Website ein. Wenn Sie einen Kauf bei uns tätigen, werden Ihre Zahlungsdaten (z. B. Name, Zahlungssumme, Kontoverbindung, Kreditkartennummer) vom Zahlungsdienstleister zum Zwecke der Zahlungsabwicklung verarbeitet. Für diese Transaktionen gelten die jeweiligen Vertrags- und Datenschutzbestimmungen der jeweiligen Anbieter. Der Einsatz der Zahlungsdienstleister erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO (Vertragsabwicklung) sowie im Interesse eines möglichst reibungslosen, komfortablen und sicheren Zahlungsvorgangs (Art. 6 Abs. 1 lit. f DSGVO). Soweit für bestimmte Handlungen Ihre Einwilligung abgefragt wird, ist Art. 6 Abs. 1 lit. a DSGVO Rechtsgrundlage der Datenverarbeitung; Einwilligungen sind jederzeit für die Zukunft widerrufbar.</p><p>Folgende Zahlungsdienste / Zahlungsdienstleister setzen wir im Rahmen dieser Website ein:</p><p style='margin:14px 0 4px'><strong>Stripe</strong></p><p>Anbieter für Kunden innerhalb der EU ist die Stripe Payments Europe, Ltd.,1 Grand Canal Street Lower, Grand Canal Dock, Dublin, Irland (im Folgenden „Stripe“). Online-Zahlungen laufen über unser eigenes Stripe-Konto; Empfänger der Zahlung sind wir selbst.</p><p>Die Datenübertragung in die USA wird auf die Standardvertragsklauseln der EU-Kommission gestützt. Details finden Sie hier:<br><a style='color:var(--odis-akzent);word-break:break-word' href='https://stripe.com/de/privacy' target='_blank' rel='noopener noreferrer'>https://stripe.com/de/privacy</a> und<br><a style='color:var(--odis-akzent);word-break:break-word' href='https://stripe.com/de/guides/general-data-protection-regulation' target='_blank' rel='noopener noreferrer'>https://stripe.com/de/guides/general-data-protection-regulation</a>.</p><p>Details hierzu können Sie in der Datenschutzerklärung von Stripe unter folgendem Link nachlesen: <a style='color:var(--odis-akzent);word-break:break-word' href='https://stripe.com/de/privacy' target='_blank' rel='noopener noreferrer'>https://stripe.com/de/privacy</a>.</p>"
 };
 
 LEGAL.agb = {
   title: "AGB &amp; Widerrufsbelehrung",
-  text:  "<h3 style='color:var(--odis-akzent);margin:0 0 10px;overflow-wrap:anywhere'>Allgemeine Geschäftsbedingungen</h3><p>für den Online-Shop unter der URL</p><p><a style='color:var(--odis-akzent);word-break:break-word' href='https://odis-ahaus.com/' target='_blank' rel='noopener noreferrer'>https://odis-ahaus.com/</a></p><p>betrieben von</p><p>Mehmet Besir Bulut / Odi’s Bowl Ahaus<br>Wallstraße 7<br>48683 Ahaus<br>E-Mail:<br><a style='color:var(--odis-akzent);word-break:break-word' href='mailto:info@odis-bowl-ahaus.de'>info@odis-bowl-ahaus.de</a><br>Telefonnummer: 02561 8916861</p><p>- im Folgenden: Anbieter -</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>1. Geltungsbereich</h3><p>Diese Allgemeinen Geschäftsbedingungen (AGB) gelten nach ihrer Einbeziehung für alle Vertragsschlüsse über den Erwerb von Waren, Dienstleistungen oder sonstigen Gütern (nachfolgend „Waren“) im Online-Shop unter der o.g. URL in ihrer zum Zeitpunkt des Vertragsschlusses gültigen Fassung. Diese AGB gelten ausschließlich. Abweichende AGB des Kunden werden nicht Vertragsbestandteil, es sei denn, der Anbieter stimmt diesen ausdrücklich zu.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>2. Vertragsschluss</h3><p>2.1 Die Angebote im Online-Shop stellen eine unverbindliche Aufforderung des Anbieters an die Online-Shop-Besucher zur Abgabe eines Angebots zum Erwerb der im Shop angebotenen Waren dar.</p><p>2.2 Die Bestellung der Ware(n) erfolgt über das Online-Bestellformular des Anbieters. Nach der Auswahl der gewünschten Ware(n), der Eingabe aller abgefragten Pflichtinformationen und dem Durchlaufen aller anderen verpflichtenden Schritte im Bestellprozess, können die ausgewählten Waren durch das Betätigen des Bestell-Buttons am Ende der Checkout-Seite bestellt werden (Bestellung). Durch die Bestellung gibt der Kunde ein verbindliches Vertragsangebot zum Erwerb der ausgewählten Ware(n) ab. Der Vertragsschluss erfolgt, indem der Anbieter das Angebot des Kunden annimmt. Die Annahme erfolgt, indem der Anbieter den Vertragsschluss in Schrift- oder Textform (z. B. per E-Mail) bestätigt (Auftragsbestätigung) und diese Auftragsbestätigung dem Kunden zugeht oder indem er dem Kunden die bestellte Ware bei Abholung übergibt oder indem er den Kunden zur Zahlung auffordert (z. B. Rechnung oder Kreditkartenzahlung im Bestellprozess) und die Zahlungsaufforderung dem Kunden zugeht; maßgeblich für den Zeitpunkt des Vertragsschlusses ist dabei der Zeitpunkt, in dem eine der im ersten Halbsatz genannten Alternativen erstmalig eintritt.</p><p>2.3 Vor verbindlicher Abgabe der Bestellung über das Online-Bestellformular des Anbieters kann der Kunde seine Eingaben überprüfen und jederzeit über die üblichen Tastatur-, Maus-, Touch- oder sonstigen zur Verfügung stehenden Eingabefunktionen korrigieren. Darüber hinaus werden alle Eingaben vor der verbindlichen Abgabe der Bestellung noch einmal in einem Bestätigungsfenster angezeigt und können auch dort mittels der üblichen Tastatur-, Maus-, Touch- oder sonstigen zur Verfügung stehende Eingabefunktionen korrigiert werden.</p><p>2.4 Der Anbieter wird den Vertragstext nach dem Vertragsschluss speichern und dem Kunden in Textform (z. B. per E-Mail) übermitteln. Eine darüberhinausgehende Zugänglichmachung des Vertragstexts durch den Anbieter erfolgt nicht. Sofern der Einkauf über ein Kundenkonto im Online-Shop erfolgt ist, kann der Kunde seine Bestellungen und die damit verbundenen Bestelldaten dort einsehen.</p><p>2.5 Für den Vertragsschluss stehen folgende Sprachen zur Verfügung: Deutsch</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>3. Widerrufsrecht für Verbraucher</h3><p>Verbrauchern steht bei außerhalb von Geschäftsräumen geschlossenen Verträgen und bei Fernabsatzverträgen grundsätzlich ein Widerrufsrecht zu. Verbraucher ist jede natürliche Person, die ein Rechtsgeschäft zu Zwecken abschließt, die überwiegend weder ihrer gewerblichen noch ihrer selbstständigen beruflichen Tätigkeit zugerechnet werden können. Details sind der Widerrufsbelehrung zu entnehmen, die jedem Verbraucher spätestens unmittelbar vor Vertragsschluss zur Verfügung gestellt wird.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>4. Zahlung, Verzug</h3><p>4.1 Es gelten die zum Zeitpunkt der Bestellung im Online-Shop aufgeführten Preise. Alle Preise gelten inklusive der gesetzlichen Mehrwertsteuer; hinzu kommt die Servicegebühr nach Ziffer 12.1. Über die zur Verfügung stehenden Zahlungsmöglichkeiten wird der Kunde im Online-Shop des Anbieters informiert.</p><p>4.2 Die Zahlung erfolgt in bar bei Abholung der Ware oder, soweit im Bestellformular angeboten, online per Kredit- oder Debitkarte (einschließlich Apple Pay und Google Pay) über den Zahlungsdienst Stripe. Empfänger der Online-Zahlung ist der Anbieter selbst; sie wird über sein eigenes Stripe-Konto abgewickelt. Bei Online-Zahlung wird der Kaufpreis sofort nach Vertragsschluss fällig.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>5. Eigentumsvorbehalt</h3><p>Die gekaufte Ware bleibt bis zur vollständigen Bezahlung des Kaufpreises Eigentum des Anbieters.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>6. Abholung und Selbstbelieferungsvorbehalt</h3><p>6.1 Eine Lieferung findet nicht statt. Die bestellte Ware wird im Restaurant des Anbieters zur Abholung bereitgestellt (siehe Ziffer 12.2). Die geltenden Abholzeiten sind dem Online-Shop zu entnehmen.</p><p>6.2 Wenn der Anbieter die bestellte Ware nicht bereitstellen kann, weil er ohne eigenes Verschulden selbst nicht beliefert wurde, obwohl er rechtzeitig mit einem zuverlässigen Lieferanten ein kongruentes Deckungsgeschäft abgeschlossen hat, wird der Anbieter von seiner Leistungspflicht frei und kann vom Vertrag zurücktreten. Der Anbieter ist verpflichtet, den Kunden unverzüglich über die Unmöglichkeit der Leistungserfüllung in Kenntnis zu setzen. Bereits erbrachte Gegenleistungen des Vertragspartners werden diesem unverzüglich erstattet. Zwingendes Verbraucherrecht bleibt vom vorliegenden Absatz unberührt.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>7. Gewährleistung</h3><p>Es gelten die Vorschriften der gesetzlichen Mängelgewährleistung.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>8. Haftung und Freistellung</h3><p>8.1 Der Anbieter haftet unbeschränkt:</p><ul style='margin:6px 0 8px 18px;line-height:1.85'><li>für Schäden aus der Verletzung des Lebens, des Körpers oder der Gesundheit, die auf einer vorsätzlichen oder fahrlässigen Pflichtverletzung des Anbieters oder einer vorsätzlichen oder fahrlässigen Pflichtverletzung eines gesetzlichen Vertreters oder Erfüllungsgehilfen des Anbieters beruhen;</li><li>für Schäden, die auf einer vorsätzlichen oder grob fahrlässigen Pflichtverletzung des Anbieters oder auf einer vorsätzlichen oder grob fahrlässigen Pflichtverletzung eines gesetzlichen Vertreters oder Erfüllungsgehilfen des Anbieters beruhen;</li><li>aufgrund eines Garantieversprechens, soweit diesbezüglich keine andere Regelung getroffen wurde;</li><li>aufgrund zwingender Haftung (z. B. nach dem Produkthaftungsgesetz)</li></ul><p>8.2 Wenn der Anbieter fahrlässig eine wesentliche Vertragspflicht verletzt, ist dessen Haftung auf den vertragstypischen, vorhersehbaren Schaden beschränkt, sofern nicht gemäß vorstehendem Absatz unbeschränkt gehaftet wird. Wesentliche Vertragspflichten sind Pflichten, die der Vertrag dem Anbieter nach seinem Inhalt zur Erreichung des Vertragszwecks auferlegt, deren Erfüllung die ordnungsgemäße Durchführung des Vertrags überhaupt erst ermöglicht und auf deren Einhaltung der Kunde regelmäßig vertrauen darf.</p><p>8.3 Im Übrigen ist eine Haftung des Anbieters sowie die Haftung seiner Erfüllungsgehilfen und gesetzlichen Vertreter ausgeschlossen.</p><p>8.4 Der Kunde stellt den Anbieter von jeglichen Ansprüchen Dritter – einschließlich der Kosten für die Rechtsverteidigung in ihrer gesetzlichen Höhe – frei, die gegen den Anbieter aufgrund von rechts- oder vertragswidrigen Handlungen des Kunden geltend gemacht werden.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>9. Datenschutz</h3><p>Der Anbieter behandelt die personenbezogenen Daten seiner Kunden vertraulich und im Einklang mit den gesetzlichen Datenschutzvorschriften. Näheres entnehmen Sie der Datenschutzerklärung des Anbieters.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>10. Schlussbestimmungen</h3><p>10.1 Anwendbar ist das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts, soweit diese Rechtswahl nicht dazu führt, dass ein Verbraucher mit gewöhnlichem Aufenthalt in der EU hierdurch zwingenden gesetzlichen Bestimmungen des Rechts seines Aufenthaltsstaates entzogen wird.</p><p>10.2 Ist der Kunde Kaufmann, juristische Person des öffentlichen Rechts oder öffentlich-rechtliches Sondervermögen, ist das Gericht am Sitz des Anbieters zuständig, sofern nicht für die Streitigkeit ein ausschließlicher Gerichtsstand begründet ist. Dies gilt auch, wenn der Kunde keinen Wohnsitz innerhalb der Europäischen Union hat. Der Sitz unseres Unternehmens ist der Überschrift dieser AGB zu entnehmen.</p><p>10.3 Soweit eine Bestimmung dieses Vertrages ungültig oder undurchsetzbar ist oder wird, bleiben die übrigen Bestimmungen dieses Vertrages hiervon unberührt.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>11. Informationen zur Online-Streitbeilegung / Verbraucherschlichtung</h3><p>Der Anbieter ist nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p><p>Unsere E-Mail-Adresse entnehmen Sie der Überschrift dieser AGB.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>12. Ergänzende Bedingungen der Odi’s Bowl Ahaus</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.1 Preise und Servicegebühr</h4><p>Alle Preise inkl. MwSt. (7 % auf Speisen, 19 % auf Getränke). Für die Nutzung der Online-Bestellplattform wird je Bestellung über diese Website eine <strong>Servicegebühr von 0,99&nbsp;€</strong> erhoben (gem. § 312a BGB). Sie wird vor Abgabe der Bestellung im Warenkorb gesondert ausgewiesen.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.2 Nur Abholung</h4><p>Bestellungen über diese Website werden ausschließlich zur Abholung angenommen, eine Lieferung findet nicht statt. Die bestellte Ware ist im Restaurant Odi’s Bowl Ahaus, Wallstraße 7, 48683 Ahaus, abzuholen. Angegebene Abholzeiten sind Schätzwerte und nicht verbindlich.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.3 Zahlungsarten</h4><p>Es gelten die im Bestellformular angebotenen Zahlungsarten: Barzahlung bei Abholung sowie, soweit angeboten, Online-Zahlung per Karte (einschließlich Apple Pay und Google Pay) über den Zahlungsdienst Stripe (siehe Ziffer 4.2).</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.4 Kein Widerrufsrecht bei frisch zubereiteten Speisen</h4><p>Gemäß § 312g Abs. 2 Nr. 2 BGB besteht kein Widerrufsrecht, da alle Speisen frisch zubereitet werden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.5 Allergene</h4><p>Eine Kennzeichnung der Allergene und Zusatzstoffe je Gericht liegt online noch nicht vor. Auskunft erhalten Sie im Restaurant oder telefonisch unter 02561 8916861. Trotz größter Sorgfalt können Kreuzkontaminationen nicht ausgeschlossen werden.</p>"
+  text:  "<h3 style='color:var(--odis-akzent);margin:0 0 10px;overflow-wrap:anywhere'>Allgemeine Geschäftsbedingungen</h3><p>für den Online-Shop unter der URL</p><p><a style='color:var(--odis-akzent);word-break:break-word' href='https://odis-ahaus.com/' target='_blank' rel='noopener noreferrer'>https://odis-ahaus.com/</a></p><p>betrieben von</p><p>Mehmet Besir Bulut / Odi’s Bowl Ahaus<br>Wallstraße 7<br>48683 Ahaus<br>E-Mail:<br><a style='color:var(--odis-akzent);word-break:break-word' href='mailto:info@odis-bowl-ahaus.de'>info@odis-bowl-ahaus.de</a><br>Telefonnummer: 02561 8916861</p><p>- im Folgenden: Anbieter -</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>1. Geltungsbereich</h3><p>Diese Allgemeinen Geschäftsbedingungen (AGB) gelten nach ihrer Einbeziehung für alle Vertragsschlüsse über den Erwerb von Waren, Dienstleistungen oder sonstigen Gütern (nachfolgend „Waren“) im Online-Shop unter der o.g. URL in ihrer zum Zeitpunkt des Vertragsschlusses gültigen Fassung. Diese AGB gelten ausschließlich. Abweichende AGB des Kunden werden nicht Vertragsbestandteil, es sei denn, der Anbieter stimmt diesen ausdrücklich zu.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>2. Vertragsschluss</h3><p>2.1 Die Angebote im Online-Shop stellen eine unverbindliche Aufforderung des Anbieters an die Online-Shop-Besucher zur Abgabe eines Angebots zum Erwerb der im Shop angebotenen Waren dar.</p><p>2.2 Die Bestellung der Ware(n) erfolgt über das Online-Bestellformular des Anbieters. Nach der Auswahl der gewünschten Ware(n), der Eingabe aller abgefragten Pflichtinformationen und dem Durchlaufen aller anderen verpflichtenden Schritte im Bestellprozess, können die ausgewählten Waren durch das Betätigen des Bestell-Buttons am Ende der Checkout-Seite bestellt werden (Bestellung). Durch die Bestellung gibt der Kunde ein verbindliches Vertragsangebot zum Erwerb der ausgewählten Ware(n) ab. Der Vertragsschluss erfolgt, indem der Anbieter das Angebot des Kunden annimmt. Die Annahme erfolgt, indem der Anbieter den Vertragsschluss in Schrift- oder Textform (z. B. per E-Mail) bestätigt (Auftragsbestätigung) und diese Auftragsbestätigung dem Kunden zugeht oder indem er dem Kunden die bestellte Ware bei Abholung übergibt oder indem er den Kunden zur Zahlung auffordert (z. B. Rechnung oder Kreditkartenzahlung im Bestellprozess) und die Zahlungsaufforderung dem Kunden zugeht; maßgeblich für den Zeitpunkt des Vertragsschlusses ist dabei der Zeitpunkt, in dem eine der im ersten Halbsatz genannten Alternativen erstmalig eintritt.</p><p>2.3 Vor verbindlicher Abgabe der Bestellung über das Online-Bestellformular des Anbieters kann der Kunde seine Eingaben überprüfen und jederzeit über die üblichen Tastatur-, Maus-, Touch- oder sonstigen zur Verfügung stehenden Eingabefunktionen korrigieren. Darüber hinaus werden alle Eingaben vor der verbindlichen Abgabe der Bestellung noch einmal in einem Bestätigungsfenster angezeigt und können auch dort mittels der üblichen Tastatur-, Maus-, Touch- oder sonstigen zur Verfügung stehende Eingabefunktionen korrigiert werden.</p><p>2.4 Der Anbieter wird den Vertragstext nach dem Vertragsschluss speichern und dem Kunden in Textform (z. B. per E-Mail) übermitteln. Eine darüberhinausgehende Zugänglichmachung des Vertragstexts durch den Anbieter erfolgt nicht. Sofern der Einkauf über ein Kundenkonto im Online-Shop erfolgt ist, kann der Kunde seine Bestellungen und die damit verbundenen Bestelldaten dort einsehen.</p><p>2.5 Für den Vertragsschluss stehen folgende Sprachen zur Verfügung: Deutsch</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>3. Widerrufsrecht für Verbraucher</h3><p>Verbrauchern steht bei außerhalb von Geschäftsräumen geschlossenen Verträgen und bei Fernabsatzverträgen grundsätzlich ein Widerrufsrecht zu. Verbraucher ist jede natürliche Person, die ein Rechtsgeschäft zu Zwecken abschließt, die überwiegend weder ihrer gewerblichen noch ihrer selbstständigen beruflichen Tätigkeit zugerechnet werden können. Details sind der Widerrufsbelehrung zu entnehmen, die jedem Verbraucher spätestens unmittelbar vor Vertragsschluss zur Verfügung gestellt wird.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>4. Zahlung, Verzug</h3><p>4.1 Es gelten die zum Zeitpunkt der Bestellung im Online-Shop aufgeführten Preise. Alle Preise gelten inklusive der gesetzlichen Mehrwertsteuer; hinzu kommen die Servicegebühr nach Ziffer 12.1 und bei Lieferung die Liefergebühr nach Ziffer 12.2. Über die zur Verfügung stehenden Zahlungsmöglichkeiten wird der Kunde im Online-Shop des Anbieters informiert.</p><p>4.2 Die Zahlung erfolgt in bar bei Übergabe der Ware (Lieferung oder Abholung) oder, soweit im Bestellformular angeboten, online per Kredit- oder Debitkarte (einschließlich Apple Pay und Google Pay) über den Zahlungsdienst Stripe. Empfänger der Online-Zahlung ist der Anbieter selbst; sie wird über sein eigenes Stripe-Konto abgewickelt. Bei Online-Zahlung wird der Kaufpreis sofort nach Vertragsschluss fällig.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>5. Eigentumsvorbehalt</h3><p>Die gekaufte Ware bleibt bis zur vollständigen Bezahlung des Kaufpreises Eigentum des Anbieters.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>6. Lieferung, Abholung und Selbstbelieferungsvorbehalt</h3><p>6.1 Die Ware wird nach Wahl des Kunden an die angegebene Lieferadresse innerhalb des Liefergebiets geliefert oder im Restaurant des Anbieters zur Abholung bereitgestellt (siehe Ziffer 12.2). Die geltenden Liefer- und Abholzeiten sind dem Online-Shop zu entnehmen.</p><p>6.2 Wenn der Anbieter die bestellte Ware nicht bereitstellen kann, weil er ohne eigenes Verschulden selbst nicht beliefert wurde, obwohl er rechtzeitig mit einem zuverlässigen Lieferanten ein kongruentes Deckungsgeschäft abgeschlossen hat, wird der Anbieter von seiner Leistungspflicht frei und kann vom Vertrag zurücktreten. Der Anbieter ist verpflichtet, den Kunden unverzüglich über die Unmöglichkeit der Leistungserfüllung in Kenntnis zu setzen. Bereits erbrachte Gegenleistungen des Vertragspartners werden diesem unverzüglich erstattet. Zwingendes Verbraucherrecht bleibt vom vorliegenden Absatz unberührt.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>7. Gewährleistung</h3><p>Es gelten die Vorschriften der gesetzlichen Mängelgewährleistung.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>8. Haftung und Freistellung</h3><p>8.1 Der Anbieter haftet unbeschränkt:</p><ul style='margin:6px 0 8px 18px;line-height:1.85'><li>für Schäden aus der Verletzung des Lebens, des Körpers oder der Gesundheit, die auf einer vorsätzlichen oder fahrlässigen Pflichtverletzung des Anbieters oder einer vorsätzlichen oder fahrlässigen Pflichtverletzung eines gesetzlichen Vertreters oder Erfüllungsgehilfen des Anbieters beruhen;</li><li>für Schäden, die auf einer vorsätzlichen oder grob fahrlässigen Pflichtverletzung des Anbieters oder auf einer vorsätzlichen oder grob fahrlässigen Pflichtverletzung eines gesetzlichen Vertreters oder Erfüllungsgehilfen des Anbieters beruhen;</li><li>aufgrund eines Garantieversprechens, soweit diesbezüglich keine andere Regelung getroffen wurde;</li><li>aufgrund zwingender Haftung (z. B. nach dem Produkthaftungsgesetz)</li></ul><p>8.2 Wenn der Anbieter fahrlässig eine wesentliche Vertragspflicht verletzt, ist dessen Haftung auf den vertragstypischen, vorhersehbaren Schaden beschränkt, sofern nicht gemäß vorstehendem Absatz unbeschränkt gehaftet wird. Wesentliche Vertragspflichten sind Pflichten, die der Vertrag dem Anbieter nach seinem Inhalt zur Erreichung des Vertragszwecks auferlegt, deren Erfüllung die ordnungsgemäße Durchführung des Vertrags überhaupt erst ermöglicht und auf deren Einhaltung der Kunde regelmäßig vertrauen darf.</p><p>8.3 Im Übrigen ist eine Haftung des Anbieters sowie die Haftung seiner Erfüllungsgehilfen und gesetzlichen Vertreter ausgeschlossen.</p><p>8.4 Der Kunde stellt den Anbieter von jeglichen Ansprüchen Dritter – einschließlich der Kosten für die Rechtsverteidigung in ihrer gesetzlichen Höhe – frei, die gegen den Anbieter aufgrund von rechts- oder vertragswidrigen Handlungen des Kunden geltend gemacht werden.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>9. Datenschutz</h3><p>Der Anbieter behandelt die personenbezogenen Daten seiner Kunden vertraulich und im Einklang mit den gesetzlichen Datenschutzvorschriften. Näheres entnehmen Sie der Datenschutzerklärung des Anbieters.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>10. Schlussbestimmungen</h3><p>10.1 Anwendbar ist das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts, soweit diese Rechtswahl nicht dazu führt, dass ein Verbraucher mit gewöhnlichem Aufenthalt in der EU hierdurch zwingenden gesetzlichen Bestimmungen des Rechts seines Aufenthaltsstaates entzogen wird.</p><p>10.2 Ist der Kunde Kaufmann, juristische Person des öffentlichen Rechts oder öffentlich-rechtliches Sondervermögen, ist das Gericht am Sitz des Anbieters zuständig, sofern nicht für die Streitigkeit ein ausschließlicher Gerichtsstand begründet ist. Dies gilt auch, wenn der Kunde keinen Wohnsitz innerhalb der Europäischen Union hat. Der Sitz unseres Unternehmens ist der Überschrift dieser AGB zu entnehmen.</p><p>10.3 Soweit eine Bestimmung dieses Vertrages ungültig oder undurchsetzbar ist oder wird, bleiben die übrigen Bestimmungen dieses Vertrages hiervon unberührt.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>11. Informationen zur Online-Streitbeilegung / Verbraucherschlichtung</h3><p>Der Anbieter ist nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p><p>Unsere E-Mail-Adresse entnehmen Sie der Überschrift dieser AGB.</p><h3 style='color:var(--odis-akzent);margin:22px 0 10px;overflow-wrap:anywhere'>12. Ergänzende Bedingungen der Odi’s Bowl Ahaus</h3><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.1 Preise und Servicegebühr</h4><p>Alle Preise inkl. MwSt. (7 % auf Speisen, 19 % auf Getränke). Für die Nutzung der Online-Bestellplattform wird je Bestellung über diese Website eine <strong>Servicegebühr von 0,99&nbsp;€</strong> erhoben (gem. § 312a BGB). Sie wird vor Abgabe der Bestellung im Warenkorb gesondert ausgewiesen.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.2 Lieferung, Abholung und Mindestbestellwert</h4><p>Die Bestellung kann zur Lieferung oder zur Abholung im Restaurant Odi’s Bowl Ahaus, Wallstraße 7, 48683 Ahaus, erfolgen. Geliefert wird bis 9&nbsp;km Fahrstrecke vom Restaurant; maßgeblich ist die beim Bestellen zur Lieferadresse angezeigte Entfernung. Liefergebühr und Mindestbestellwert richten sich nach dieser Entfernung. Der Mindestbestellwert bezieht sich auf den Warenwert, Liefer- und Servicegebühr zählen nicht dazu. Die Liefergebühr entspricht den „Versandkosten“ in Ziffer 4.1. Es gelten:</p><ul style='margin:6px 0 8px 18px;line-height:1.85'><li>bis 2&nbsp;km: Liefergebühr 1,50&nbsp;€, Mindestbestellwert 20,00&nbsp;€</li><li>über 2 bis 5&nbsp;km: Liefergebühr 2,50&nbsp;€, Mindestbestellwert 20,00&nbsp;€</li><li>über 5 bis 9&nbsp;km: Liefergebühr 5,50&nbsp;€, Mindestbestellwert 40,00&nbsp;€</li></ul><p>Für die Abholung gilt kein Mindestbestellwert und keine Liefergebühr. Açaí-Bowls sind nur im Restaurant erhältlich; sie können über diese Website weder zur Lieferung noch zur Abholung bestellt werden. Angegebene Liefer- und Abholzeiten sind Schätzwerte und nicht verbindlich.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.3 Zahlungsarten</h4><p>Es gelten die im Bestellformular angebotenen Zahlungsarten: Barzahlung bei Übergabe (Lieferung oder Abholung) sowie, soweit angeboten, Online-Zahlung per Karte (einschließlich Apple Pay und Google Pay) über den Zahlungsdienst Stripe (siehe Ziffer 4.2).</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.4 Kein Widerrufsrecht bei frisch zubereiteten Speisen</h4><p>Gemäß § 312g Abs. 2 Nr. 2 BGB besteht kein Widerrufsrecht, da alle Speisen frisch zubereitet werden.</p><h4 style='color:var(--odis-akzent);margin:16px 0 6px;font-size:.92rem;overflow-wrap:anywhere'>12.5 Allergene</h4><p>Eine Kennzeichnung der Allergene und Zusatzstoffe je Gericht liegt online noch nicht vor. Auskunft erhalten Sie im Restaurant oder telefonisch unter 02561 8916861. Trotz größter Sorgfalt können Kreuzkontaminationen nicht ausgeschlossen werden.</p>"
 };
 
 LEGAL.allergene = {
@@ -4362,7 +4646,7 @@ document.readyState === 'loading'
 
   // Bei jeder Aenderung an den Flaschenbildern hochzaehlen: Browser speichern
   // Bilder von GitHub Pages 10 Minuten zwischen und zeigen sonst die alte Flasche.
-  var BILD_STAND = '2026-10-22b';
+  var BILD_STAND = '2026-11-17a';
 
   // Getraenke: je Sorte eine eigene Flasche. Alle Flaschen einer Marke
   // stammen aus demselben Bild aus Odi’s Getraenkekarte und sind nur auf die
@@ -4370,18 +4654,14 @@ document.readyState === 'loading'
   var GETRAENK_FLASCHE = {
     'Coca-Cola Original': 'cola-original',
     'Coca-Cola Zero': 'cola-zero',
-    'Proviant Bio Limonade Orange': 'limonade-orange',
     'Proviant Bio Limonade Rhabarber': 'limonade-rhabarber',
     'Proviant Bio Limonade Limette & Minze': 'limonade-limette-minze',
-    'Proviant Bio Schorle Kirsche & Granatapfel': 'schorle-kirsche-granatapfel',
     "Richard's Sun Ice Tea Peach": 'ice-tea-peach',
-    "Richard's Sun Ice Tea Lemon": 'ice-tea-lemon',
     "Richard's Sun Ice Tea Pomegranate": 'ice-tea-pomegranate',
-    "Richard's Sun Ice Tea Blueberry": 'ice-tea-blueberry',
-    'Gesaris Mineralwasser Classic': 'gesaris-classic',
-    'Gesaris Mineralwasser Still': 'gesaris-still',
-    'Gesaris Apfelschorle': 'gesaris-apfelschorle',
-    "Pott's Cola Mix": 'potts-cola-mix'
+    "Richard's Sun Ice Tea Watermelon & Pineapple": 'ice-tea-watermelon-pineapple',
+    'Gesaris Apfelschorle': 'gesaris-apfelschorle'
+    // Töftes Mineralwasser Classic/Still: noch kein Flaschenbild (die vorhandenen
+    // Wasserbilder zeigen das Gesaris-Etikett) - die Karte erscheint ohne Bild.
   };
 
   function menueHinweis() {
@@ -4497,11 +4777,29 @@ document.readyState === 'loading'
     footer.className = 'card-footer';
     footer.appendChild(priceDiv);
 
-    var addBtn = document.createElement('button');
-    addBtn.className = 'card-add-btn';
-    addBtn.textContent = '+';
-    addBtn.setAttribute('type', 'button');
-    footer.appendChild(addBtn);
+    // Nur im Laden (menu.json: nur_im_laden, Açaí): Karte bleibt sichtbar, aber
+    // statt des Hinzufuegen-Knopfs steht ein Schild, und ein Klick tut nichts.
+    var bkArt = el.dataset.bk && (window.BAUKASTEN || {})[el.dataset.bk];
+    var kartenTitel = h3 ? h3.textContent.trim() : '';
+    if (typeof nurImLaden === 'function' && nurImLaden(bkArt ? bkArt.name : kartenTitel)) {
+      el.removeAttribute('onclick');
+      el.classList.add('nur-im-laden');
+      el.style.cursor = 'default';
+      var schild = document.createElement('span');
+      schild.className = 'nur-im-laden-schild';
+      schild.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 4.4 4h11.2L17 8.5"/><path d="M3 8.5h14v1a2.3 2.3 0 0 1-4.6 0 2.4 2.4 0 0 1-4.8 0A2.3 2.3 0 0 1 3 9.5z"/><path d="M4.5 11.5V16h11v-4.5M8.5 16v-3h3v3"/></svg>Nur im Laden erhältlich';
+      footer.appendChild(schild);
+      var laden = document.createElement('p');
+      laden.className = 'nur-im-laden-text';
+      laden.textContent = 'Online nicht bestellbar – weder zur Lieferung noch zur Abholung.';
+      infoDiv.appendChild(laden);
+    } else {
+      var addBtn = document.createElement('button');
+      addBtn.className = 'card-add-btn';
+      addBtn.textContent = '+';
+      addBtn.setAttribute('type', 'button');
+      footer.appendChild(addBtn);
+    }
     cardBody.appendChild(footer);
 
     el.innerHTML = '';
@@ -4718,6 +5016,20 @@ body.modal-open {
 </style>
 
 <script src="baukasten.js"></script>
+<script>
+// Açaí & Co. (nur im Laden) oeffnen keinen Baukasten - auch nicht ueber einen
+// alten Link oder die Suche. Der Server lehnt solche Bestellungen ohnehin ab.
+(function () {
+  var original = window.openBaukasten;
+  if (typeof original !== 'function') return;
+  window.openBaukasten = function (quelle) {
+    var num = typeof quelle === 'string' ? quelle : (quelle && quelle.dataset && quelle.dataset.bk);
+    var art = (window.BAUKASTEN || {})[num];
+    if (art && nurImLaden(art.name)) return;
+    return original.apply(this, arguments);
+  };
+})();
+</script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
    RESTAURANT STATUS & AUSVERKAUFT – Live-Sync mit Backend
@@ -4969,6 +5281,7 @@ body.modal-open {
       var hn = document.getElementById('c-hausnummer');
       if (st && !st.value) st.value = addr.street || '';
       if (hn && !hn.value) hn.value = addr.house || '';
+      if (typeof lieferAnzeigenAuffrischen === 'function') lieferAnzeigenAuffrischen();
     }
 
     // Banner anzeigen

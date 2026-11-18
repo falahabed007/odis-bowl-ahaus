@@ -129,7 +129,7 @@ function buildReceipt(order) {
 
   receipt += SEPARATOR;
   receipt += CENTER + 'Vielen Dank!' + LF;
-  receipt += '~35 Min Lieferzeit' + LF;
+  if (order.mode === 'lieferung') receipt += '~35 Min Lieferzeit' + LF;
   receipt += LF + LF + LF;
   receipt += CUT;
 

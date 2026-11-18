@@ -72,7 +72,7 @@
       ]
     ]
   },
-  "lieferorte": "nur Abholung - keine Lieferung (Abed, 17.11.2026)",
+  "lieferorte": "Lieferung nach Fahrstrecke ab Wallstraße 7 (liefergebiet.json): bis 2 km 1,50 € Liefergebühr, Mindestbestellwert 20 €; über 2 bis 5 km 2,50 €, Mindestbestellwert 20 €; über 5 bis 9 km 5,50 €, Mindestbestellwert 40 €; über 9 km keine Lieferung. Abholung ohne Mindestbestellwert. Açaí-Bowl nur im Laden, online nicht bestellbar (Abed, 17.11.2026 abends)",
   "servicegebuehr": 0.99,
   "grundgebuehr": 150,
   "zahlungswege": [

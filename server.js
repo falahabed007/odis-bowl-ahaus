@@ -460,8 +460,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Odi’s Bowl Ahaus liefert nicht: keine Lieferorte, nur Abholung (Abed,
-// 17.11.2026). onlineZahlung sagt der Bestellseite, ob Stripe fertig
+// Odi’s Bowl Ahaus liefert nach Fahrstrecke statt nach Orten (Abed, 17.11.2026
+// abends) - deliveryCities bleibt deshalb leer, die Zonen (Gebühr und
+// Mindestbestellwert je Zone) stehen unter lieferung, dieselben Zahlen, mit
+// denen der Server prüft. nurImLaden: online nicht bestellbar (Açaí).
+// onlineZahlung sagt der Bestellseite, ob Stripe fertig
 // eingerichtet und das Konto des Ladens freigeschaltet ist; sonst bietet sie
 // nur bar an. Die Pruefung wartet hoechstens 4 s und wirft nie (Zwischenspeicher
 // 5 Minuten), die Route antwortet also immer, im Zweifel mit false.
@@ -470,8 +473,13 @@ app.get('/api/config', async (req, res) => {
   try { onlineZahlung = (await stripeBereit()) === true; } catch { onlineZahlung = false; }
   res.json({
     serviceFee: 0.99,
-    nurAbholung: NUR_ABHOLUNG,
+    nurAbholung: false,
     deliveryCities: {},
+    lieferung: {
+      zonen: LIEFERGEBIET.zonen.map(z => ({ bis_km: z.bis_km, gebuehr: z.gebuehr, mindestwert: z.mindestwert })),
+      grenzeKm: LIEFERGEBIET.grenzeKm,
+      nurImLaden: NUR_IM_LADEN_NAMEN,
+    },
     onlineZahlung,
     zahlarten: onlineZahlung ? zahlarten() : [],
   });
@@ -530,22 +538,27 @@ function berechneRabatt() {
   return 0;
 }
 
-// ── Nur Abholung ─────────────────────────────────────────────────
-// Odi’s Bowl Ahaus liefert nicht (Abed, 17.11.2026). Eine Bestellung mit
-// Modus Lieferung wird abgelehnt, statt mit Liefergebuehren gerechnet zu
-// werden, die es nicht gibt. Bei Abholung zaehlt keine Liefergebuehr, egal
-// was der Client schickt.
-const NUR_ABHOLUNG = true;
+// ── Lieferung nach Fahrstrecke, Açaí nur im Laden ───────────────
+// Ab Wallstraße 7: bis 2 km 1,50 €, bis 5 km 2,50 € (Mindestbestellwert je
+// 20 €), bis 9 km 5,50 € (Mindestbestellwert 40 €), darüber keine Lieferung
+// (Abed, 17.11.2026 abends). Die Strecke je Adresse steht in liefergebiet.json;
+// dieselbe Nachschlagefunktion nutzt die Bestellseite. Der Server rechnet Zone,
+// Gebühr und Mindestbestellwert trotzdem selbst - was der Client als
+// deliveryFee schickt, zählt nicht. Bei Abholung gibt es keine Liefergebühr.
+// Açaí-Bowls (menu.json: nur_im_laden) sind online gar nicht bestellbar.
+// Die Prüfung selbst steht in lieferung.js (Tests: test/lieferung.test.js).
+const Liefergebiet = require('./liefergebiet.js');
+const { erstellePruefer } = require('./lieferung');
+const LIEFERGEBIET = Liefergebiet.erstelle(
+  JSON.parse(fs.readFileSync(path.join(__dirname, 'liefergebiet.json'), 'utf8')));
+// (MENU_FILE steht erst weiter unten - hier der Pfad direkt.)
+const NUR_IM_LADEN_NAMEN = JSON.parse(fs.readFileSync(path.join(__dirname, 'Menue', 'menu.json'), 'utf8')).kategorien
+  .flatMap(k => k.items || []).filter(it => it.nur_im_laden).map(it => it.name);
+const lieferPruefer = erstellePruefer({ gebiet: LIEFERGEBIET, nurImLadenNamen: NUR_IM_LADEN_NAMEN });
 
 function lieferungAbgelehnt(req, res) {
-  if (!NUR_ABHOLUNG || !req.body) return false;
-  if (req.body.mode === 'lieferung') {
-    res.status(400).json({
-      message: 'Odi’s Bowl Ahaus liefert nicht. Bestellungen sind nur zur Abholung möglich.'
-    });
-    return true;
-  }
-  req.body.deliveryFee = 0;
+  const r = lieferPruefer.pruefe(req.body);
+  if (r.fehler) { res.status(400).json({ message: r.fehler }); return true; }
   return false;
 }
 
@@ -624,8 +637,8 @@ async function stripeGebuehrNachlesen(order) {
 // mehr – siehe bestellung.js.
 app.post('/api/orders', async (req, res) => {
   try {
-    if (lieferungAbgelehnt(req, res)) return;   // nur Abholung
-    // Erst danach: lieferungAbgelehnt setzt deliveryFee in req.body auf 0.
+    if (lieferungAbgelehnt(req, res)) return;   // Liefergebiet, Mindestbestellwert je Zone, Açaí nur im Laden
+    // Erst danach: lieferungAbgelehnt setzt deliveryFee (und die Lieferadresse) in req.body selbst.
     const auswahl = webBestellungAusRequest(req.body);
     if (auswahl.fehler) return res.status(400).json({ message: auswahl.fehler });
 
@@ -688,13 +701,13 @@ app.get('/api/orders/status/:token', async (req, res) => {
 // oder scheitert die Sitzung, gibt es 503 mit Hinweis auf Barzahlung: keine
 // Bestellung, kein zweiter Versuch auf einem anderen Weg. Das Plattformkonto
 // nimmt fuer diesen Laden nie Geld an.
-const ONLINE_ZAHLUNG_AUS = 'Online-Zahlung ist derzeit nicht möglich. Bitte wähle Barzahlung und zahle bei Abholung.';
+const ONLINE_ZAHLUNG_AUS = 'Online-Zahlung ist derzeit nicht möglich. Bitte wähle Barzahlung (bar bei Abholung oder Lieferung).';
 
 app.post('/api/create-stripe-checkout', async (req, res) => {
   try {
     const konto = await direktKontoFuerCheckout();
     if (!konto) return res.status(503).json({ message: ONLINE_ZAHLUNG_AUS, onlineZahlung: false });
-    if (lieferungAbgelehnt(req, res)) return;   // nur Abholung
+    if (lieferungAbgelehnt(req, res)) return;   // Liefergebiet, Mindestbestellwert je Zone, Açaí nur im Laden
     const { items, subtotal, deliveryFee, serviceFee, customer, mode, note } = req.body;
     const orderNum = await getNextOrderNum();
 
@@ -871,7 +884,7 @@ app.post('/api/verify-payment', async (req, res) => {
 // ── PayPal Checkout ───────────────────────────────────────────────
 app.post('/api/create-paypal-order', async (req, res) => {
   try {
-    if (lieferungAbgelehnt(req, res)) return;   // nur Abholung
+    if (lieferungAbgelehnt(req, res)) return;   // Liefergebiet, Mindestbestellwert je Zone, Açaí nur im Laden
     const { items, subtotal, deliveryFee, serviceFee, customer, mode, note } = req.body;
     const orderNum = await getNextOrderNum();
 
