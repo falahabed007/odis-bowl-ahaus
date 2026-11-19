@@ -12,6 +12,7 @@ const fs         = require('fs');
 const { webBestellungAusRequest } = require('./bestellung');
 const Zeiten     = require('./oeffnungszeiten');
 const Vorbestellung = require('./vorbestellung');
+const { kasseAnmerkung } = require('./kasse');
 require('dotenv').config();
 
 const app  = express();
@@ -1212,6 +1213,10 @@ app.post('/api/admin/login', async (req, res) => {
 // an das Geraet und erschien dort unter "Laeuft" (Abed, 17.11.2026). An die Kasse
 // kommt eine Online-Bestellung erst, wenn Stripe die Zahlung bestaetigt hat.
 const FUER_KASSE = { $nor: [{ payment: { $in: ['stripe', 'paypal'] }, paymentStatus: { $nin: ['paid', 'refunded'] } }] };
+
+// Kassen-App druckt bei Artikeln mit Extras nur die Extras -- die Anmerkung
+// am Artikel geht deshalb als Extra mit (kasse.js).
+app.use('/api/admin/orders', kasseAnmerkung());
 
 app.get('/api/admin/orders/pending', auth, async (req, res) => {
   try { res.json({ pending: await Order.find({ ...FUER_KASSE, status:'pending' }).sort({ createdAt:1 }) }); }
