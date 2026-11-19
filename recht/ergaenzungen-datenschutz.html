@@ -1,0 +1,36 @@
+<!-- Eigene Ergaenzungen zur Datenschutzerklaerung, nicht eRecht24.
+     recht/einbauen.py setzt jeden Block an das Ende des eRecht24-Abschnitts, der in der Zeile
+     "EINFUEGEN ende-von=..." genannt ist (Anfang der Ueberschrift <h2>, z. B. "2. Hosting").
+     Ueberschriftenebenen wie im eRecht24-Export: <h3> fuer einen Unterabschnitt.
+     Stand 19.11.2026, gegen den Code geprueft (index.html, account.html, server.js, stripe-direkt.js,
+     liefergebiet.js). Aendert sich ein Dienst, ein Speicherschluessel oder der Bestellablauf: hier anpassen. -->
+
+<!-- EINFUEGEN ende-von="2. Hosting" -->
+<h3>Betrieb des Bestellsystems</h3>
+<p>Diese Website und das Bestellsystem betreibt in unserem Auftrag Abed Rachman Falah / FlueVate, Zur Goldbrede 30, 59269 Beckum (im Folgenden „FlueVate“). FlueVate verarbeitet dabei die Daten, die Sie bei einer Bestellung, im Kundenkonto oder bei einer Online-Zahlung angeben, nur nach unseren Weisungen. Grundlage ist ein Vertrag über Auftragsverarbeitung nach Art. 28 DSGVO. Soweit wir Online-Zahlung anbieten, greift FlueVate in unserem Auftrag auch auf die Zahlungsdaten in unserem eigenen Stripe-Konto zu, soweit das für die Abwicklung der Bestellung, für Erstattungen und für unsere Abrechnung nötig ist. FlueVate ist dabei nicht Empfänger Ihrer Zahlung.</p>
+<p>FlueVate setzt dafür folgende weitere Dienstleister ein:</p>
+<ul>
+<li>Hetzner Online GmbH, Industriestr. 25, 91710 Gunzenhausen, Deutschland: Server des Bestellsystems</li>
+<li>MongoDB Limited, Building Two, Number One Ballsbridge, Dublin 4, Irland: Datenbank (MongoDB Atlas)</li>
+<li>Resend, Inc., 2261 Market Street #5039, San Francisco, CA 94114, USA: Versand der Bestell-E-Mails</li>
+<li>GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA: Auslieferung dieser Website (GitHub Pages); dabei wird Ihre IP-Adresse verarbeitet</li>
+</ul>
+<p>Resend und GitHub verarbeiten Daten in den USA. Bei MongoDB ist ein Zugriff verbundener Unternehmen aus den USA möglich. Die Übermittlung stützt sich auf den Angemessenheitsbeschluss der EU-Kommission zum EU-US Data Privacy Framework, soweit der jeweilige Anbieter danach zertifiziert ist, im Übrigen auf die Standardvertragsklauseln der EU-Kommission.</p>
+
+<!-- EINFUEGEN ende-von="4. Datenerfassung auf dieser Website" -->
+<h3>Speicherung im Browser (kein Tracking)</h3>
+<p>Für einige Funktionen der Bestellseite speichern wir Angaben im lokalen Speicher Ihres Browsers (localStorage). Diese Angaben bleiben auf Ihrem Endgerät, werden nicht zur Analyse Ihres Nutzerverhaltens oder zu Werbezwecken verwendet und nicht an Dritte weitergegeben. Im Einzelnen:</p>
+<ul>
+<li>Warenkorb (Eintrag „odisahaus_warenkorb“): die ausgewählten Artikel, damit Ihr Warenkorb beim nächsten Aufruf der Seite noch vorhanden ist. Haben Sie eine Online-Zahlung begonnen, wird zusätzlich eine Kennung der Bestellung gespeichert, damit die Seite erkennt, ob bereits bezahlt wurde. Der Eintrag wird gelöscht, sobald Sie die Bestellung abgeschickt haben. Ist er älter als 7 Tage oder hat sich die Speisekarte inzwischen geändert, wird er beim nächsten Aufruf der Seite gelöscht.</li>
+<li>Laufende Bestellung (Eintrag „odisbowlWartendeBestellung“): Bestellnummer, eine Kennung für die Statusabfrage, Bestellart, Betrag, Ihr Vorname, Ihre E-Mail-Adresse und bei einer Vorbestellung der gewählte Zeitpunkt, damit Sie auch nach einem Neuladen der Seite sehen, ob wir Ihre Bestellung angenommen haben. Der Eintrag wird gelöscht, sobald die Statusanzeige endet; ist er älter als 30 Minuten, wird er beim nächsten Aufruf der Seite gelöscht.</li>
+<li>Anmeldung im Kundenkonto (Eintrag „customerToken“): ein Anmeldeschlüssel, solange Sie im Kundenkonto angemeldet sind. Er wird beim Abmelden gelöscht.</li>
+<li>Erneut bestellen (Einträge „reorderItems“ und „reorderMode“): Wählen Sie im Kundenkonto eine frühere Bestellung zum erneuten Bestellen aus, werden deren Artikel und Bestellart gespeichert, um sie an die Bestellseite zu übergeben.</li>
+</ul>
+<p>Diese Speicherung ist unbedingt erforderlich, um die von Ihnen ausdrücklich gewünschten Funktionen (Warenkorb, Anzeige des Bestellstatus, Kundenkonto) bereitzustellen (§ 25 Abs. 2 Nr. 2 TDDDG); eine Einwilligung ist dafür nicht erforderlich. Die Verarbeitung der gespeicherten Angaben erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO. Sie können die Einträge jederzeit über die Einstellungen Ihres Browsers löschen.</p>
+
+<!-- EINFUEGEN ende-von="6. eCommerce und Zahlungsanbieter" -->
+<h3>Bestellabwicklung und Prüfung des Liefergebiets</h3>
+<p>Wenn Sie über diese Website bestellen, erheben wir Ihren Vor- und Nachnamen, Ihre Telefonnummer, Ihre E-Mail-Adresse, die gewählte Bestellart (Abholung oder Lieferung), bei Lieferung Ihre Lieferadresse (Straße, Hausnummer, Ort), Ihre Bestellung einschließlich Ihrer Anmerkungen, die gewählte Zahlungsart sowie bei einer Vorbestellung den gewünschten Tag und die gewünschte Uhrzeit. Wir verwenden diese Daten, um Ihre Bestellung anzunehmen, zuzubereiten, zu liefern bzw. zur Abholung bereitzustellen und abzurechnen und um Sie über den Stand Ihrer Bestellung zu informieren (Bestellbestätigung per E-Mail, Statusanzeige auf dieser Website). Sind Sie im Kundenkonto angemeldet, wird die Bestellung Ihrem Kundenkonto zugeordnet und dort angezeigt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO.</p>
+<p>Ob eine Lieferadresse in unserem Liefergebiet liegt und welche Liefergebühr und welcher Mindestbestellwert gelten, ermitteln wir anhand einer Straßenliste mit vorab berechneten Fahrstrecken, die auf dieser Website und auf unserem Server hinterlegt ist. Die Prüfung findet in Ihrem Browser und auf unserem Server statt. Ihre Adresse wird dabei an keinen Kartendienst übermittelt; ein Kartendienst ist auf dieser Website nicht eingebunden.</p>
+<h3>Online-Zahlung über unser eigenes Stripe-Konto</h3>
+<p>Wählen Sie im Bestellformular die Online-Zahlung, werden Sie auf die Zahlungsseite von Stripe (Stripe Checkout) weitergeleitet und geben Ihre Zahlungsdaten dort direkt bei Stripe ein. Vertragspartner der Zahlung sind wir selbst: Die Zahlung wird über unser eigenes Stripe-Konto abgewickelt und geht unmittelbar an uns. Für die Zahlung übermitteln wir Stripe die bestellten Positionen mit Preisen, Liefer- und Servicegebühr, die Bestellnummer und Ihre E-Mail-Adresse. Je nach gewählter Zahlungsart (Karte, Apple Pay, Google Pay oder, soweit angeboten, Klarna) verarbeiten außerdem die oben unter „Zahlungsdienste“ genannten Anbieter Ihre Daten.</p>
