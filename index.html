@@ -3264,7 +3264,7 @@ function zeigeWarten() {
     // Vorbestellung: kein Spinner - bis zur Bestätigung kann es Stunden dauern
     if (warteDaten && warteDaten.vorbestellung) {
         const fuer = warteDaten.wannText ? ' für <strong>' + warteDaten.wannText + '</strong>' : '';
-        zeigeBestellZustand('📅', 'Vorbestellung eingegangen!',
+        zeigeBestellZustand('🕒', 'Vorbestellung eingegangen!',
             anrede + 'Deine Vorbestellung' + fuer + ' ist eingegangen. '
             + (warteDaten.jetztOffen
                 ? 'Der Laden bestätigt sie in Kürze – du bekommst eine E-Mail.'
