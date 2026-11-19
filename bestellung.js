@@ -34,6 +34,8 @@ const GESPERRTE_FELDER = [
   // Vorbestellung: setzt nur der Server nach der Pruefung (vorbestellung.js),
   // auch die erste Zeile von note
   'wunschzeit', 'vorbestellung',
+  // Umsatzsteuer-Aufteilung: rechnet nur der Server beim Speichern (umsatzsteuer.js)
+  'umsatzsteuer',
 ];
 
 /**
