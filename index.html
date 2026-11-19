@@ -8,6 +8,9 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Odi’s Bowl Ahaus – Bestellen</title>
+    <meta name="theme-color" content="#ffffff">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png?v=2026-11-19">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png?v=2026-11-19">
     <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
     <link href="fonts/fonts-index.css" rel="stylesheet">
     <link href="fonts/fonts-account.css" rel="stylesheet">
@@ -17,10 +20,10 @@
     <style>
     /* FARBEN:START – erzeugt aus palette in stammdaten.json, nicht von Hand aendern */
     :root {
-      --odis-grund: #1b1a1e; --odis-flaeche: #232227; --odis-flaeche-2: #2d2c32; --odis-rahmen: #3d3b43;
-      --odis-schrift: #f4eee6; --odis-schrift-leise: #b3aba0;
-      --odis-akzent: #a3bd34; --odis-akzent-2: #f79b20; --odis-auf-akzent: #1b1a1e;
-      --odis-rot: #f26b5b; --odis-gruen: #7ccf8a;
+      --odis-grund: #ffffff; --odis-flaeche: #f6f7f1; --odis-flaeche-2: #eceee4; --odis-rahmen: #dde1d3;
+      --odis-schrift: #1c2419; --odis-schrift-leise: #59634f;
+      --odis-akzent: #2c6223; --odis-akzent-2: #c2461b; --odis-auf-akzent: #ffffff;
+      --odis-rot: #c0352b; --odis-gruen: #2a6f2e;
       /* Namen aus der Vorlage, damit vorhandenes var(...) weiter traegt */
       --odis-blue: var(--odis-akzent); --odis-gold: var(--odis-akzent);
       --odis-red: var(--odis-rot);
@@ -748,22 +751,33 @@
     border-radius: 50%; animation: warteSpin .7s linear infinite;
 }
 
-/* FARBEN:EIGEN:START – Gestaltung nach dem ersten Bühnenfoto (Abed, 17.11.2026; Foto am 19.11.2026 getauscht).
-   erscheinungsbild.js lässt diesen Block stehen. Grund = Schiefer unten im Foto,
-   Grün = Edamame/Logo "ODI’S", Orange = Karotte/Logo "BOWL", Violett = Rotkohl (nur Açaí).
-   Kontraste: Schrift #f4eee6 auf #1b1a1e 15:1, #1b1a1e auf Grün #a3bd34 8,2:1,
-   Orange #f79b20 auf #232227 7,3:1, #1b1a1e auf Violett #c48ad6 6,6:1. */
+/* FARBEN:EIGEN:START – Helles Erscheinungsbild in den Farben des neuen Ladenlogos
+   (Logo von Abed am 19.11.2026; vorher dunkel nach dem Bühnenfoto, 17.11.2026).
+   erscheinungsbild.js lässt diesen Block stehen. Farben aus dem Logo gemessen:
+   Dunkelgrün "ODI’S" #2c6223, Hellgrün Blatt #8eba43, Orange "BOWL"/Schale #ee8a34,
+   Rotorange Band #dd5426. Violett nur für Açaí. Die alten Namen (--o-schiefer …)
+   bleiben, damit vorhandenes var(...) weiter trägt; die Werte sind jetzt hell.
+   Kontraste: Schrift #1c2419 auf Weiß 16:1, leise #59634f auf Weiß 6,3:1 / auf #eceee4 5,4:1,
+   Weiß auf Grün #2c6223 7,3:1 (Hover #235019 9,4:1), Preise #c2461b auf Weiß 5,0:1 /
+   auf #f6f7f1 4,7:1, Weiß auf Band #c94a1f 4,7:1, große Schrift Orange #d66f1c 3,4:1,
+   Weiß auf Violett #7a3d8a 7,3:1. Hellgrün und Logo-Orange nur als Schmuck (unter 3:1). */
 :root {
-    color-scheme: dark;
-    --o-schiefer: #1b1a1e;
-    --o-schiefer-tief: #141316;
-    --o-gruen: #a3bd34;
-    --o-gruen-hell: #b6cf4a;
-    --o-orange: #f79b20;
-    --o-lachs: #f57522;
-    --o-violett: #c48ad6;
-    --o-linie: rgba(244, 238, 230, .09);
-    --o-kopf-h: 64px;
+    color-scheme: light;
+    --o-schiefer: #ffffff;
+    --o-schiefer-tief: #f6f7f1;
+    --o-gruen: #2c6223;
+    --o-gruen-hell: #235019;      /* Hover-Stufe (Name von früher) */
+    --o-hellgruen: #8eba43;
+    --o-orange: #ee8a34;          /* nur Schmuck und Flächen */
+    --o-orange-gross: #d66f1c;    /* große Schrift ab 24 px */
+    --o-orange-text: #c2461b;     /* Preise und kleine Schrift */
+    --o-rotorange: #dd5426;
+    --o-band: #c94a1f;            /* Band mit weißer Schrift */
+    --o-lachs: #dd5426;
+    --o-violett: #7a3d8a;
+    --o-linie: rgba(28, 36, 25, .12);
+    --o-schatten: rgba(28, 36, 25, .16);
+    --o-kopf-h: 80px;
     --o-display: 'Oswald', 'Arial Narrow', Arial, sans-serif;
     --o-text: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
 }
@@ -773,7 +787,7 @@ html, body {
     font-family: var(--o-text); line-height: 1.55;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
 }
-::selection { background: var(--o-gruen); color: #1b1a1e; }
+::selection { background: var(--o-gruen); color: #fff; }
 :focus-visible { outline: 2px solid var(--o-gruen); outline-offset: 3px; }
 button, input, select, textarea { font-family: inherit; }
 .odis-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; box-sizing: border-box; }
@@ -793,23 +807,22 @@ button, input, select, textarea { font-family: inherit; }
 
 /* ── Kopfzeile ─────────────────────────────────────────────── */
 .odisbowl-header {
-    background: rgba(20, 19, 22, .88);
-    -webkit-backdrop-filter: saturate(140%) blur(12px); backdrop-filter: saturate(140%) blur(12px);
-    box-shadow: none; border-bottom: 1px solid var(--o-linie);
+    background: rgba(255, 255, 255, .9);
+    -webkit-backdrop-filter: saturate(160%) blur(12px); backdrop-filter: saturate(160%) blur(12px);
+    box-shadow: 0 10px 30px -24px rgba(28, 36, 25, .45); border-bottom: 1px solid var(--o-linie);
 }
 .odisbowl-header-inner {
     max-width: 1200px; height: var(--o-kopf-h); padding: 0 24px; gap: 10px; box-sizing: border-box;
 }
+/* Logo als Bild (ganzes Ladenlogo, Abed 19.11.2026), daneben der Standort */
 .odisbowl-logo {
-    margin-right: auto; display: flex; align-items: baseline; gap: .4rem;
-    font-family: var(--o-display); font-weight: 700; text-transform: uppercase;
-    font-size: 1.6rem; line-height: 1; letter-spacing: .03em;
-    color: var(--o-gruen); text-decoration: none; white-space: nowrap;
+    margin-right: auto; display: flex; align-items: center; gap: .9rem;
+    text-decoration: none; white-space: nowrap; line-height: 1;
 }
-.odisbowl-logo em { font-style: normal; color: var(--o-lachs); }
+.odisbowl-logo img { display: block; height: 66px; width: auto; }
 .odisbowl-logo small {
-    align-self: center; margin-left: .45rem; padding-left: .7rem; border-left: 1px solid var(--odis-rahmen);
-    font-family: var(--o-text); font-size: .66rem; font-weight: 600; letter-spacing: .24em;
+    padding-left: .9rem; border-left: 1px solid var(--odis-rahmen);
+    font-family: var(--o-text); font-size: .7rem; font-weight: 700; letter-spacing: .24em; text-transform: uppercase;
     color: var(--odis-schrift-leise);
 }
 .search-btn, .odisbowl-account-btn {
@@ -821,18 +834,22 @@ button, input, select, textarea { font-family: inherit; }
 .search-bar-wrap.open { border-color: var(--odis-rahmen); }
 .search-bar-wrap input { color: var(--odis-schrift); }
 .search-bar-wrap input::placeholder { color: var(--odis-schrift-leise); opacity: 1; }
-.search-bar-wrap .search-clear-btn { background: rgba(244, 238, 230, .08); color: var(--odis-schrift); }
-.account-logged-dot { background: var(--o-gruen); border-color: var(--o-schiefer-tief); }
+.search-bar-wrap .search-clear-btn { background: var(--odis-rahmen); color: var(--odis-schrift); }
+.account-logged-dot { background: var(--o-gruen); border-color: #fff; }
 
 /* ── Bühne ─────────────────────────────────────────────────── */
 .odis-hero {
     position: relative; overflow: hidden; box-sizing: border-box;
     display: flex; align-items: center;
     min-height: min(100svh, 880px); padding: var(--o-kopf-h) 0 0;
-    background: radial-gradient(60% 80% at 76% 54%, #232127 0%, var(--o-schiefer) 70%);
+    background:
+        radial-gradient(48% 62% at 78% 54%, rgba(142, 186, 67, .22) 0%, rgba(142, 186, 67, 0) 72%),
+        radial-gradient(34% 44% at 96% 12%, rgba(238, 138, 52, .16) 0%, rgba(238, 138, 52, 0) 70%),
+        radial-gradient(30% 40% at 4% 96%, rgba(142, 186, 67, .12) 0%, rgba(142, 186, 67, 0) 70%),
+        linear-gradient(180deg, #ffffff 0%, var(--odis-flaeche) 100%);
 }
-/* Die Bowl ist freigestellt (rund, durchsichtiger Rand) und steht mit eigenem
-   Schatten auf dem Schiefergrund – kein Bildkasten, keine Maske. */
+/* Die Bowl ist freigestellt (rund, durchsichtiger Rand) und steht mit weichem
+   Schatten auf hellem Grund – kein Bildkasten, keine Maske. */
 .odis-hero-bild {
     position: absolute; top: calc(50% + var(--o-kopf-h) / 2); right: max(28px, calc((100vw - 1200px) / 2 - 36px));
     width: min(43vw, 600px, 74svh); aspect-ratio: 1; margin: 0; z-index: 0;
@@ -840,11 +857,11 @@ button, input, select, textarea { font-family: inherit; }
 }
 .odis-hero-bild::before {
     content: ""; position: absolute; inset: -9%; border-radius: 50%; z-index: -1;
-    background: radial-gradient(closest-side, rgba(163, 189, 52, .13), rgba(247, 155, 32, .05) 62%, transparent 100%);
+    background: radial-gradient(closest-side, rgba(142, 186, 67, .26), rgba(238, 138, 52, .10) 62%, transparent 100%);
 }
 .odis-hero-bild img {
     display: block; width: 100%; height: 100%; object-fit: contain;
-    filter: drop-shadow(0 30px 38px rgba(0, 0, 0, .6));
+    filter: drop-shadow(0 26px 30px rgba(44, 62, 30, .22));
     animation: odis-bild-ein 1.4s cubic-bezier(.2, .7, .2, 1) both;
 }
 .odis-hero-innen {
@@ -867,19 +884,25 @@ button, input, select, textarea { font-family: inherit; }
 .odis-hero h1 .punkt-gruen { color: var(--o-gruen); }
 .odis-hero h1 .punkt-orange { color: var(--o-orange); }
 .odis-hero h1 .punkt-violett { color: var(--o-violett); }
+/* Kleine Zeile über der Überschrift als Band wie im Logo ("FRISCH • GESUND • LECKER") */
+.odis-hero .odis-hero-ort {
+    display: inline-flex; margin-bottom: 1.4rem; padding: .5rem .95rem .48rem;
+    background: var(--o-band); color: #fff; font-weight: 700; letter-spacing: .24em; line-height: 1.2;
+}
+.odis-hero .odis-hero-ort::before { content: none; }
 .odis-hero-lead {
     margin: 0 0 2rem; max-width: 36ch; font-size: 1.12rem; line-height: 1.6; color: var(--odis-schrift-leise);
 }
 .odis-btn-haupt {
     display: inline-flex; align-items: center; gap: .75rem;
     min-height: 54px; padding: 0 1.7rem; border-radius: 999px; box-sizing: border-box;
-    background: var(--o-gruen); color: #1b1a1e; text-decoration: none;
+    background: var(--o-gruen); color: #fff; text-decoration: none;
     font-weight: 700; font-size: 1.04rem; letter-spacing: .01em;
-    box-shadow: 0 14px 34px -14px rgba(163, 189, 52, .6);
+    box-shadow: 0 14px 30px -14px rgba(44, 98, 35, .55);
     transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 .odis-btn-haupt svg { width: 18px; height: 18px; transition: transform .2s ease; }
-.odis-btn-haupt:hover { background: var(--o-gruen-hell); transform: translateY(-1px); box-shadow: 0 18px 38px -14px rgba(163, 189, 52, .7); }
+.odis-btn-haupt:hover { background: var(--o-gruen-hell); transform: translateY(-1px); box-shadow: 0 18px 34px -14px rgba(44, 98, 35, .6); }
 .odis-btn-haupt:hover svg { transform: translateY(2px); }
 .odis-btn-haupt:focus-visible { outline: 2px solid var(--odis-schrift); outline-offset: 3px; }
 .odis-hero-fakten {
@@ -893,7 +916,7 @@ button, input, select, textarea { font-family: inherit; }
     color: var(--odis-schrift-leise); margin-bottom: .35rem;
 }
 .odis-hero-fakten dd { margin: 0; font-size: .95rem; line-height: 1.45; font-weight: 500; color: var(--odis-schrift); }
-.odis-hero-fakten a { color: var(--odis-schrift); text-decoration: none; border-bottom: 1px solid var(--o-gruen); }
+.odis-hero-fakten a { color: var(--odis-schrift); text-decoration: none; border-bottom: 2px solid var(--o-hellgruen); }
 .odis-hero-fakten a:hover { color: var(--o-gruen); }
 
 @keyframes odis-auf { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -907,12 +930,12 @@ button, input, select, textarea { font-family: inherit; }
 }
 .odis-schritte li { position: relative; padding-top: 44px; }
 .odis-schritte li::before {
-    content: ""; position: absolute; top: 12px; left: 46px; right: -28px; height: 1px; background: var(--odis-rahmen);
+    content: ""; position: absolute; top: 12px; left: 46px; right: -28px; height: 2px; background: var(--o-hellgruen); opacity: .55;
 }
-.odis-schritte li:last-child::before { right: 0; background: linear-gradient(to right, var(--odis-rahmen), transparent); }
+.odis-schritte li:last-child::before { right: 0; background: linear-gradient(to right, var(--o-hellgruen), transparent); }
 .odis-schritt-nr {
     position: absolute; top: 0; left: 0; font-family: var(--o-display); font-weight: 500;
-    font-size: 1rem; letter-spacing: .08em; color: var(--o-orange); line-height: 24px;
+    font-size: 1rem; letter-spacing: .08em; color: var(--o-orange-text); line-height: 24px;
 }
 .odis-schritte h3 {
     font-family: var(--o-display); font-weight: 700; text-transform: uppercase;
@@ -946,21 +969,22 @@ button, input, select, textarea { font-family: inherit; }
 .product-grid > .product-item { padding: 0; }
 .product-item[data-bk] {
     position: relative; padding: 0 !important; overflow: hidden; display: flex; flex-direction: column;
-    background: var(--odis-flaeche); border: 1px solid var(--o-linie); border-radius: 22px; box-shadow: none;
+    background: var(--odis-grund); border: 1px solid var(--odis-rahmen); border-radius: 22px;
+    box-shadow: 0 14px 34px -26px var(--o-schatten);
     transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease;
 }
 .product-item[data-bk]::before { content: none; }
 .product-item[data-bk]:hover {
-    transform: translateY(-4px); border-color: rgba(163, 189, 52, .45);
-    box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .9);
+    transform: translateY(-4px); border-color: rgba(44, 98, 35, .45);
+    box-shadow: 0 28px 50px -28px rgba(28, 36, 25, .35);
 }
-.product-item[data-bk="A1"]:hover { border-color: rgba(196, 138, 214, .5); }
+.product-item[data-bk="A1"]:hover { border-color: rgba(122, 61, 138, .45); }
 .product-item[data-bk] .card-img {
     width: 100%; height: auto !important; aspect-ratio: 4 / 3; object-fit: cover; border: 0;
     background: var(--odis-flaeche-2); transition: transform .7s cubic-bezier(.2, .7, .2, 1);
 }
 .product-item[data-bk]:hover .card-img { transform: scale(1.045); filter: none; }
-.product-item[data-bk] .card-body { position: relative; padding: 22px 24px 24px; background: var(--odis-flaeche); }
+.product-item[data-bk] .card-body { position: relative; padding: 22px 24px 24px; background: var(--odis-grund); }
 .product-item[data-bk] .product-info h3 {
     font-family: var(--o-display); font-weight: 700; text-transform: uppercase;
     font-size: 1.8rem; line-height: 1; letter-spacing: .01em; color: var(--odis-schrift); margin: 0 0 .55rem;
@@ -969,7 +993,7 @@ button, input, select, textarea { font-family: inherit; }
     -webkit-line-clamp: 3; font-size: .93rem; line-height: 1.55; color: var(--odis-schrift-leise); margin-bottom: 18px;
 }
 .product-item[data-bk] .price {
-    font-family: var(--o-text); font-weight: 700; font-size: 1.3rem; color: var(--o-orange); letter-spacing: -.01em;
+    font-family: var(--o-text); font-weight: 700; font-size: 1.3rem; color: var(--o-orange-text); letter-spacing: -.01em;
 }
 .product-item[data-bk] .price small {
     font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
@@ -977,23 +1001,27 @@ button, input, select, textarea { font-family: inherit; }
 }
 .product-item[data-bk="A1"] .price { color: var(--o-violett); }
 .card-add-btn {
-    width: 44px; height: 44px; background: var(--o-gruen); color: #1b1a1e; font-size: 1.5rem; font-weight: 500;
-    box-shadow: 0 10px 24px -12px rgba(163, 189, 52, .8);
+    width: 44px; height: 44px; background: var(--o-gruen); color: #fff; font-size: 1.5rem; font-weight: 500;
+    box-shadow: 0 10px 22px -12px rgba(44, 98, 35, .7);
 }
 .product-item:hover .card-add-btn { background: var(--o-gruen-hell); transform: scale(1.06); }
-.product-item[data-bk="A1"] .card-add-btn { background: var(--o-violett); box-shadow: 0 10px 24px -12px rgba(196, 138, 214, .8); }
-.product-item[data-bk="A1"]:hover .card-add-btn { background: #d3a2e2; }
+.product-item[data-bk="A1"] .card-add-btn { background: var(--o-violett); box-shadow: 0 10px 22px -12px rgba(122, 61, 138, .7); }
+.product-item[data-bk="A1"]:hover .card-add-btn { background: #64306f; }
 
 /* „Mach’s zum Menü!“ unter der Getränke-Überschrift */
 .menue-hinweis {
-    background: var(--odis-flaeche-2); color: var(--odis-schrift);
-    border: 1px solid rgba(163, 189, 52, .32); border-radius: 22px; padding: 22px 28px; margin: 0 0 24px;
+    background:
+        radial-gradient(70% 140% at 100% 50%, rgba(238, 138, 52, .14), transparent 70%),
+        radial-gradient(60% 120% at 0% 0%, rgba(142, 186, 67, .16), transparent 70%),
+        var(--odis-flaeche);
+    color: var(--odis-schrift);
+    border: 1px solid rgba(142, 186, 67, .55); border-radius: 22px; padding: 22px 28px; margin: 0 0 24px;
     transition: border-color .25s ease;
 }
-.menue-hinweis:hover { border-color: rgba(163, 189, 52, .7); }
-.menue-hinweis small { color: var(--o-gruen); font-weight: 600; letter-spacing: .18em; opacity: 1; }
+.menue-hinweis:hover { border-color: var(--o-gruen); }
+.menue-hinweis small { color: var(--o-gruen); font-weight: 700; letter-spacing: .18em; opacity: 1; }
 .menue-hinweis strong {
-    font-family: var(--o-display); font-weight: 700; text-transform: uppercase; color: var(--o-orange);
+    font-family: var(--o-display); font-weight: 700; text-transform: uppercase; color: var(--o-orange-gross);
     font-size: 2rem; letter-spacing: .01em; margin: 6px 0 6px;
 }
 .menue-hinweis span { color: var(--odis-schrift-leise); font-size: .95rem; }
@@ -1002,23 +1030,23 @@ button, input, select, textarea { font-family: inherit; }
 /* Getränke */
 .product-grid:not(:has(> .product-item[data-bk])) { grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 14px; }
 .product-item:not([data-bk]) {
-    background: var(--odis-flaeche); border: 1px solid var(--o-linie); border-radius: 18px;
-    transition: transform .25s ease, border-color .25s ease;
+    background: var(--odis-grund); border: 1px solid var(--odis-rahmen); border-radius: 18px;
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
 }
-.product-item:not([data-bk]):hover { transform: translateY(-3px); border-color: var(--odis-rahmen); box-shadow: none; }
+.product-item:not([data-bk]):hover { transform: translateY(-3px); border-color: rgba(44, 98, 35, .4); box-shadow: 0 18px 34px -24px rgba(28, 36, 25, .35); }
 .card-img-flasche {
     height: 168px; padding: 20px 0 8px;
-    background: radial-gradient(52% 50% at 50% 60%, #39373f 0%, var(--odis-flaeche) 80%);
+    background: radial-gradient(52% 50% at 50% 60%, var(--odis-flaeche-2) 0%, var(--odis-grund) 80%);
 }
 .product-item:not([data-bk]) .card-body { padding: 12px 16px 16px; }
 .product-item:not([data-bk]) .product-info h3 { font-family: var(--o-text); font-size: .92rem; font-weight: 600; line-height: 1.35; color: var(--odis-schrift); margin-bottom: 10px; }
-.product-item:not([data-bk]) .price { color: var(--o-orange); font-size: 1rem; }
+.product-item:not([data-bk]) .price { color: var(--o-orange-text); font-size: 1rem; }
 .product-item:not([data-bk]) .card-add-btn { width: 36px; height: 36px; font-size: 1.3rem; }
 .category-banner { display: none; }
 
 /* ── Kategorieleiste ───────────────────────────────────────── */
 .cat-nav-wrap {
-    top: var(--o-kopf-h); background: rgba(20, 19, 22, .92);
+    top: var(--o-kopf-h); background: rgba(255, 255, 255, .94);
     -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--o-linie); box-shadow: none;
 }
@@ -1032,40 +1060,41 @@ button, input, select, textarea { font-family: inherit; }
     border: 1px solid var(--odis-rahmen); background: transparent;
 }
 .cat-nav-link:hover { background: var(--odis-flaeche-2); color: var(--odis-schrift); }
-.cat-nav-link.active { background: var(--o-gruen); border-color: var(--o-gruen); color: #1b1a1e; font-weight: 600; }
+.cat-nav-link.active { background: var(--o-gruen); border-color: var(--o-gruen); color: #fff; font-weight: 600; }
 
 /* ── Status „geschlossen“ ──────────────────────────────────── */
 #odisbowl-closed-banner {
     top: var(--o-kopf-h) !important; height: 52px; box-sizing: border-box;
     padding: 0 20px !important; z-index: 595 !important;
-    background: #29232a !important; color: var(--odis-schrift) !important;
-    border-bottom: 1px solid rgba(242, 107, 91, .35);
-    box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .7) !important;
+    background: #fbeeea !important; color: var(--odis-schrift) !important;
+    border-bottom: 1px solid rgba(192, 53, 43, .3);
+    box-shadow: 0 12px 26px -18px rgba(28, 36, 25, .35) !important;
     font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; line-height: 1.35;
 }
 #odisbowl-closed-banner.odis-status-neutral,
-#odisbowl-closed-banner.odis-status-vorbestellung { border-bottom-color: rgba(247, 155, 32, .4); }
-#odisbowl-closed-banner a { color: var(--odis-schrift); text-decoration: none; border-bottom: 1px solid var(--o-gruen); white-space: nowrap; margin-left: .35rem; }
+#odisbowl-closed-banner.odis-status-vorbestellung { background: #fdf2e6 !important; border-bottom-color: rgba(238, 138, 52, .45); }
+#odisbowl-closed-banner a { color: var(--o-gruen); font-weight: 600; text-decoration: none; border-bottom: 1px solid currentColor; white-space: nowrap; margin-left: .35rem; }
 .odis-zu-punkt {
     flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--odis-rot);
-    box-shadow: 0 0 0 4px rgba(242, 107, 91, .18);
+    box-shadow: 0 0 0 4px rgba(192, 53, 43, .16);
 }
 .odis-status-neutral .odis-zu-punkt,
-.odis-status-vorbestellung .odis-zu-punkt { background: var(--o-orange); box-shadow: 0 0 0 4px rgba(247, 155, 32, .18); }
+.odis-status-vorbestellung .odis-zu-punkt { background: var(--o-orange); box-shadow: 0 0 0 4px rgba(238, 138, 52, .22); }
 body:has(#odisbowl-closed-banner) .cat-nav-wrap { top: calc(var(--o-kopf-h) + 52px); }
 #odisbowl-closed-toast, #odisbowl-so-toast {
-    background: var(--odis-flaeche-2) !important; color: var(--odis-schrift) !important;
-    border: 1px solid var(--odis-rahmen); border-radius: 999px !important; padding: 12px 22px !important;
+    background: var(--odis-schrift) !important; color: #fff !important;
+    border: 0; border-radius: 999px !important; padding: 12px 22px !important;
     font-family: var(--o-text); font-weight: 500 !important;
+    box-shadow: 0 14px 30px -14px rgba(28, 36, 25, .5) !important;
 }
 
 /* ── Warenkorb-Knopf und Warenkorb ─────────────────────────── */
 .mobile-cart-btn {
-    background: var(--o-gruen); color: #1b1a1e; padding: 12px 20px 12px 16px; font-size: 15px;
-    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .9), 0 0 0 1px rgba(0, 0, 0, .15);
+    background: var(--o-gruen); color: #fff; padding: 12px 20px 12px 16px; font-size: 15px;
+    box-shadow: 0 16px 32px -14px rgba(28, 36, 25, .55);
 }
-.mobile-cart-btn:hover { background: var(--o-gruen-hell); box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .9); transform: translateY(-2px); }
-.fab-cart-count { background: #1b1a1e; color: var(--o-gruen); }
+.mobile-cart-btn:hover { background: var(--o-gruen-hell); box-shadow: 0 18px 36px -14px rgba(28, 36, 25, .6); transform: translateY(-2px); }
+.fab-cart-count { background: #fff; color: var(--o-gruen); }
 /* Schwebender Warenkorb-Knopf weg, solange Warenkorb, Kasse oder Baukasten offen sind */
 body.modal-open .mobile-cart-btn, body:has(#bk-popup) .mobile-cart-btn,
 body:has(#mobileCartPanel[style*="display: flex"]) .mobile-cart-btn,
@@ -1073,10 +1102,10 @@ body:has(#quickPopup[style*="display: flex"]) .mobile-cart-btn,
 body:has(#checkoutModal[style*="display: flex"]) .mobile-cart-btn,
 body:has(#dankeModal[style*="display: flex"]) .mobile-cart-btn,
 body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !important; }
-#mobileCartOverlay { background: rgba(8, 8, 10, .66) !important; }
+#mobileCartOverlay { background: rgba(28, 36, 25, .42) !important; }
 #mobileCartPanel {
-    background: var(--odis-flaeche) !important; border-left: 1px solid var(--o-linie);
-    box-shadow: -30px 0 70px rgba(0, 0, 0, .55) !important; font-family: var(--o-text);
+    background: var(--odis-grund) !important; border-left: 1px solid var(--o-linie);
+    box-shadow: -24px 0 60px rgba(28, 36, 25, .22) !important; font-family: var(--o-text);
 }
 #mobileCartPanel > div:first-child {
     background: transparent !important; color: var(--odis-schrift) !important;
@@ -1094,47 +1123,52 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
     background: var(--odis-flaeche-2) !important; color: var(--odis-schrift) !important;
     font-weight: 600 !important; padding: 11px !important; cursor: default !important;
 }
-#cart-summary-box { background: var(--odis-flaeche-2) !important; border: 0 !important; border-radius: 12px !important; padding: 12px 14px !important; color: var(--odis-schrift-leise); }
+/* Die Regel oben stammt aus der Zeit nur mit Abholung; im Umschalter soll die
+   gewählte Abholung genauso grün sein wie die gewählte Lieferung. */
+#cart-btn-pickup:not([aria-pressed="true"]) { background: transparent !important; color: var(--odis-schrift-leise) !important; cursor: pointer !important; }
+#cart-btn-pickup[aria-pressed="true"] { background: var(--o-gruen) !important; color: #fff !important; }
+#cart-summary-box { background: var(--odis-flaeche) !important; border: 0 !important; border-radius: 12px !important; padding: 12px 14px !important; color: var(--odis-schrift-leise); }
 #cart-summary-box b { color: var(--odis-schrift); }
 #mobileCartPanel > div:nth-child(3), #mobileCartPanel > div:nth-child(4) { padding-left: 22px !important; padding-right: 22px !important; }
 #mobileCartCheckoutBtn {
-    background: var(--o-gruen) !important; color: #1b1a1e !important; border-radius: 999px !important;
+    background: var(--o-gruen) !important; color: #fff !important; border-radius: 999px !important;
     padding: 16px !important; font-size: 16px !important; font-weight: 700 !important;
 }
 #mobileCartCheckoutBtn:hover { background: var(--o-gruen-hell) !important; }
 
 /* ── Popups: gemeinsame Grundlage ──────────────────────────── */
-.quick-modal-overlay, #checkoutModal, #dankeModal, #upsellModal, #legalOv { background: rgba(8, 8, 10, .72) !important; }
+.quick-modal-overlay, #checkoutModal, #dankeModal, #upsellModal, #legalOv,
+.pizza-modal-overlay, .pasta-modal-overlay, .salad-modal-overlay, .pb-modal-overlay, .fam-modal-overlay { background: rgba(28, 36, 25, .45) !important; }
 .odis-feld, #checkoutModal input[type="text"], #checkoutModal input[type="tel"], #checkoutModal input[type="email"],
 #checkoutModal select, #checkoutModal textarea, #quickPopup textarea {
-    background: var(--odis-flaeche-2) !important; color: var(--odis-schrift) !important;
+    background: var(--odis-grund) !important; color: var(--odis-schrift) !important;
     border: 1px solid var(--odis-rahmen) !important; border-radius: 12px !important;
     font-family: var(--o-text) !important; font-size: 15px !important; box-sizing: border-box;
 }
 #checkoutModal input::placeholder, #checkoutModal textarea::placeholder, #quickPopup textarea::placeholder { color: var(--odis-schrift-leise); opacity: 1; }
 #checkoutModal input:focus, #checkoutModal select:focus, #checkoutModal textarea:focus, #quickPopup textarea:focus {
-    outline: none; border-color: var(--o-gruen) !important; box-shadow: 0 0 0 3px rgba(163, 189, 52, .18);
+    outline: none; border-color: var(--o-gruen) !important; box-shadow: 0 0 0 3px rgba(142, 186, 67, .3);
 }
 
 /* Getränk hinzufügen */
 #quickPopup .quick-modal-card {
-    background: var(--odis-flaeche); border: 1px solid var(--o-linie); border-radius: 24px;
-    padding: 28px; font-family: var(--o-text); box-shadow: 0 40px 80px -30px rgba(0, 0, 0, .8);
+    background: var(--odis-grund); border: 1px solid var(--o-linie); border-radius: 24px;
+    padding: 28px; font-family: var(--o-text); box-shadow: 0 40px 80px -30px rgba(28, 36, 25, .45);
 }
 /* Kein text-transform hier: speiseInWarenkorb liest den Namen per innerText
    aus #quickName - Großbuchstaben landeten sonst im Warenkorb und auf dem Bon. */
 #quickName { font-family: var(--o-display); font-weight: 700; letter-spacing: .01em; color: var(--odis-schrift) !important; font-size: 1.7rem; line-height: 1.15; padding: 0 28px; }
-#quickPriceDisplay { color: var(--o-orange); }
+#quickPriceDisplay { color: var(--o-orange-text); }
 #quickPopup .pizza-footer {
-    background: var(--o-gruen) !important; color: #1b1a1e !important; border-radius: 999px !important; padding: 16px !important;
+    background: var(--o-gruen) !important; color: #fff !important; border-radius: 999px !important; padding: 16px !important;
 }
 
 /* Bowl-, Wrap- und Açaí-Baukasten (baukasten.js hängt seine Stile später an,
    deshalb mit #bk-popup davor) */
-#bk-popup.bk-ov { background: rgba(8, 8, 10, .72); }
+#bk-popup.bk-ov { background: rgba(28, 36, 25, .45); }
 #bk-popup .bk {
-    background: var(--odis-flaeche); color: var(--odis-schrift); border: 1px solid var(--o-linie);
-    box-shadow: 0 -20px 70px rgba(0, 0, 0, .6); font-family: var(--o-text);
+    background: var(--odis-grund); color: var(--odis-schrift); border: 1px solid var(--o-linie);
+    box-shadow: 0 -20px 60px rgba(28, 36, 25, .25); font-family: var(--o-text);
 }
 #bk-popup .bk[style*="--bk-a"] { --bk-a: var(--o-violett) !important; }
 #bk-popup .bk-kopf { padding: 22px 24px 16px; border-bottom-color: var(--o-linie); }
@@ -1150,14 +1184,14 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 #bk-popup .bk-st h3 { font-family: var(--o-display); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; font-size: 1.12rem; }
 #bk-popup .bk-regel { color: var(--odis-schrift-leise); }
 #bk-popup .bk-chip {
-    background: var(--odis-flaeche-2); border: 1px solid var(--odis-rahmen); color: var(--odis-schrift);
+    background: var(--odis-flaeche); border: 1px solid var(--odis-rahmen); color: var(--odis-schrift);
     min-height: 42px; padding: 9px 16px;
 }
 #bk-popup .bk-chip:hover:not(:disabled) { border-color: var(--bk-a); }
 #bk-popup .bk-chip[aria-pressed="true"] { background: var(--bk-a); border-color: var(--bk-a); color: var(--bk-auf); font-weight: 600; }
 #bk-popup .bk-chip small { color: var(--odis-schrift-leise); }
 #bk-popup .bk-chip[aria-pressed="true"] small { color: inherit; }
-#bk-popup .bk select, #bk-popup .bk textarea { background: var(--odis-flaeche-2); color: var(--odis-schrift); border: 1px solid var(--odis-rahmen); border-radius: 12px; }
+#bk-popup .bk select, #bk-popup .bk textarea { background: var(--odis-grund); color: var(--odis-schrift); border: 1px solid var(--odis-rahmen); border-radius: 12px; }
 #bk-popup .bk select:focus, #bk-popup .bk textarea:focus { outline: none; border-color: var(--bk-a); }
 #bk-popup .bk-meld, #bk-popup .bk-schritt.bk-fehlt .bk-regel { color: var(--odis-rot); }
 #bk-popup .bk-fuss { border-top-color: var(--o-linie); padding: 14px 24px calc(16px + env(safe-area-inset-bottom, 0px)); }
@@ -1166,7 +1200,8 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 
 /* Kasse */
 #checkoutModal > div {
-    background: var(--odis-flaeche) !important; border: 1px solid var(--o-linie);
+    background: var(--odis-grund) !important; border: 1px solid var(--o-linie);
+    box-shadow: 0 30px 70px -30px rgba(28, 36, 25, .45);
     font-family: var(--o-text) !important; padding: 28px !important; color: var(--odis-schrift);
 }
 #checkoutModal > div > span[onclick] {
@@ -1178,30 +1213,33 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
     font-size: 2rem; line-height: 1; color: var(--odis-schrift) !important;
     border-bottom: 1px solid var(--o-linie) !important; padding-bottom: 16px !important;
 }
-#zahlung-hinweis { background: var(--odis-flaeche-2) !important; border-color: var(--odis-rahmen) !important; border-radius: 12px !important; }
-#paymentLogos, #paypalLogo { background: var(--odis-flaeche-2) !important; border-color: var(--odis-rahmen) !important; border-radius: 12px !important; }
-#paymentLogos > span:first-child, #paymentLogos > span:nth-child(3) { background: var(--odis-schrift) !important; color: #1b1a1e !important; }
-#final-summary { background: var(--odis-flaeche-2) !important; border: 0 !important; border-radius: 12px !important; color: var(--odis-schrift-leise); }
-#checkoutModal div:has(> label > #cb-agb) { background: var(--odis-flaeche-2) !important; border-radius: 12px !important; }
+#zahlung-hinweis { background: var(--odis-flaeche) !important; border-color: var(--odis-rahmen) !important; border-radius: 12px !important; }
+#paymentLogos, #paypalLogo { background: var(--odis-flaeche) !important; border-color: var(--odis-rahmen) !important; border-radius: 12px !important; }
+#paymentLogos > span:first-child, #paymentLogos > span:nth-child(3) { background: var(--odis-schrift) !important; color: #fff !important; }
+/* Apple-Pay-Zeichen ist weiß gezeichnet: auf schwarzem Schild lassen */
+#paymentLogos > span:nth-child(4) { background: #000 !important; color: #fff !important; }
+#paymentLogos > span:nth-child(5) { background: #fff !important; }
+#final-summary { background: var(--odis-flaeche) !important; border: 0 !important; border-radius: 12px !important; color: var(--odis-schrift-leise); }
+#checkoutModal div:has(> label > #cb-agb) { background: var(--odis-flaeche) !important; border-radius: 12px !important; }
 #checkoutModal input[type="checkbox"] { accent-color: var(--o-gruen); }
 #btn-bestellen { border-radius: 999px !important; padding: 16px !important; font-size: 16px !important; }
-#checkout-customer-banner { background: var(--odis-flaeche-2) !important; color: var(--odis-schrift) !important; border-color: var(--odis-rahmen) !important; }
+#checkout-customer-banner { background: rgba(142, 186, 67, .14) !important; color: var(--odis-schrift) !important; border-color: rgba(44, 98, 35, .3) !important; }
 
 /* Bestätigung nach dem Bestellen */
-#dankeModal > div { background: var(--odis-flaeche) !important; border: 1px solid var(--o-linie); font-family: var(--o-text); }
+#dankeModal > div { background: var(--odis-grund) !important; border: 1px solid var(--o-linie); font-family: var(--o-text); box-shadow: 0 30px 70px -30px rgba(28, 36, 25, .45) !important; }
 #dankeTitel { font-family: var(--o-display); text-transform: uppercase; letter-spacing: .01em; color: var(--odis-schrift) !important; }
-#dankeModal > div > div:nth-child(3) { background: var(--odis-flaeche-2) !important; border: 1px solid var(--odis-rahmen) !important; }
-#dankeOrderId { color: var(--o-orange) !important; }
-#dankeText { background: var(--odis-flaeche-2) !important; }
+#dankeModal > div > div:nth-child(3) { background: var(--odis-flaeche) !important; border: 1px solid var(--odis-rahmen) !important; }
+#dankeOrderId { color: var(--o-orange-text) !important; }
+#dankeText { background: var(--odis-flaeche) !important; }
 #dankeCloseBtn { border-radius: 999px !important; }
 
 /* Rechtstexte */
 #legalOv > div {
-    background: var(--odis-flaeche) !important; border: 1px solid var(--o-linie);
-    font-family: var(--o-text) !important; overflow: clip;
+    background: var(--odis-grund) !important; border: 1px solid var(--o-linie);
+    font-family: var(--o-text) !important; overflow: clip; box-shadow: 0 30px 70px -30px rgba(28, 36, 25, .45) !important;
 }
 #legalOv > div > div:first-child {
-    background: var(--odis-flaeche-2) !important; border-bottom: 1px solid var(--odis-rahmen); z-index: 1;
+    background: var(--odis-flaeche) !important; border-bottom: 1px solid var(--odis-rahmen); z-index: 1;
 }
 #legalTitle { font-family: var(--o-display); font-weight: 700 !important; text-transform: uppercase; letter-spacing: .03em; font-size: 1.2rem !important; color: var(--odis-schrift) !important; }
 #legalOv > div > div:first-child button {
@@ -1216,9 +1254,12 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 #legalContent th, #legalContent td { border-color: var(--odis-rahmen) !important; }
 
 /* Handy-Menü */
-.mobile-menu-overlay { background: rgba(8, 8, 10, .66); }
+.mobile-menu-overlay { background: rgba(28, 36, 25, .42); }
 .mobile-menu-overlay.open { display: block !important; }
-.mobile-menu-panel { background: var(--odis-flaeche); border-right: 1px solid var(--o-linie); box-shadow: 30px 0 70px rgba(0, 0, 0, .5); padding: 80px 24px 24px; }
+/* Schatten nur, wenn das Menü offen ist – sonst fällt er vom eingefahrenen
+   Menü links als grauer Schleier über die helle Seite */
+.mobile-menu-panel { background: var(--odis-grund); border-right: 1px solid var(--o-linie); box-shadow: none; padding: 80px 24px 24px; }
+.mobile-menu-panel.open { box-shadow: 24px 0 60px rgba(28, 36, 25, .22); }
 .mobile-menu-panel h2 { font-family: var(--o-display); font-weight: 700; letter-spacing: .03em; font-size: 1.6rem; color: var(--odis-schrift); border-bottom: 1px solid var(--o-linie); }
 .mobile-menu-panel ul li { border-bottom: 1px solid var(--o-linie); }
 .mobile-menu-panel ul li a { font-family: var(--o-text); font-size: 16px; color: var(--odis-schrift); padding: 16px 4px; }
@@ -1230,31 +1271,31 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 }
 .odis-menue-konto:hover { border-color: var(--o-gruen); color: var(--o-gruen); }
 
-.warte-spinner { border-color: rgba(244, 238, 230, .15); border-top-color: var(--o-gruen); }
+.warte-spinner { border-color: rgba(28, 36, 25, .14); border-top-color: var(--o-gruen); }
 
 /* ── Açaí: nur vor Ort, Flyer des Ladens (Abed, 19.11.2026) ── */
 .odis-acai { padding: 88px 0 24px; scroll-margin-top: calc(var(--o-kopf-h) + 12px); }
 .odis-acai-raster {
     display: grid; grid-template-columns: 1fr minmax(0, 440px); gap: 40px 72px; align-items: center;
-    padding: 44px 48px; border: 1px solid rgba(196, 138, 214, .28); border-radius: 28px;
-    background: radial-gradient(90% 120% at 100% 0%, rgba(196, 138, 214, .12), transparent 60%), var(--o-schiefer-tief);
+    padding: 44px 48px; border: 1px solid rgba(122, 61, 138, .22); border-radius: 28px;
+    background: radial-gradient(90% 120% at 100% 0%, rgba(122, 61, 138, .09), transparent 60%), #faf8fa;
 }
 .odis-acai .odis-kicker { color: var(--o-violett); }
 .odis-acai .odis-abschnitt-titel { font-size: clamp(1.9rem, 3.6vw, 2.9rem); margin-bottom: 1rem; }
 .odis-acai-lead { color: var(--odis-schrift-leise); font-size: 1.02rem; line-height: 1.65; max-width: 46ch; margin: 0 0 1.6rem; }
 .odis-acai-lead strong { color: var(--odis-schrift); font-weight: 600; }
 .odis-acai-preise { display: flex; gap: 14px; margin: 0 0 1.6rem; }
-.odis-acai-preise > div { padding: 12px 20px; border-radius: 14px; border: 1px solid rgba(196, 138, 214, .35); background: rgba(196, 138, 214, .08); }
+.odis-acai-preise > div { padding: 12px 20px; border-radius: 14px; border: 1px solid rgba(122, 61, 138, .28); background: #fff; }
 .odis-acai-preise dt { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--o-violett); margin-bottom: .15rem; }
 .odis-acai-preise dd { margin: 0; font-family: 'Oswald', sans-serif; font-size: 1.5rem; color: var(--odis-schrift); }
 .odis-acai-ort { margin: 0; color: var(--odis-schrift-leise); font-size: .95rem; }
 .odis-acai-ort a { color: var(--odis-schrift); text-decoration: none; border-bottom: 1px solid var(--o-violett); white-space: nowrap; }
-.odis-acai-flyer { display: block; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 60px -28px rgba(0, 0, 0, .8); transform: rotate(1.2deg); transition: transform .3s ease; }
+.odis-acai-flyer { display: block; border-radius: 16px; overflow: hidden; box-shadow: 0 28px 50px -26px rgba(60, 30, 70, .45); transform: rotate(1.2deg); transition: transform .3s ease; }
 .odis-acai-flyer:hover, .odis-acai-flyer:focus-visible { transform: none; }
 .odis-acai-flyer img { display: block; width: 100%; height: auto; }
 .odis-acai-flyer span {
     display: block; padding: 10px 14px; text-align: center; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase;
-    background: #4a1f52; color: #f4eee6;
+    background: var(--o-violett); color: #fff;
 }
 @media (max-width: 860px) {
     .odis-acai { padding: 56px 0 8px; }
@@ -1290,15 +1331,20 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 .odis-zeiten > div.heute dt { color: var(--odis-schrift); font-weight: 600; }
 .odis-zeiten > div.heute dt::after {
     content: "heute"; margin-left: .7rem; padding: 2px 9px; border-radius: 999px; vertical-align: .12em;
-    background: rgba(163, 189, 52, .14); color: var(--o-gruen); font-size: .7rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    background: rgba(142, 186, 67, .2); color: var(--o-gruen); font-size: .7rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
 }
 .odis-zeiten > div.heute dd { color: var(--o-gruen); }
 .odis-zeiten-hinweis { margin: 1rem 0 0; color: var(--odis-schrift-leise); font-size: .9rem; }
 
 /* ── Fußzeile ──────────────────────────────────────────────── */
-.odis-fuss { background: var(--o-schiefer-tief); border-top: 1px solid var(--o-linie); padding: 48px 0 112px; }
+.odis-fuss {
+    background: radial-gradient(40% 90% at 0% 0%, rgba(142, 186, 67, .14), transparent 70%), var(--o-schiefer-tief);
+    border-top: 1px solid var(--o-linie); padding: 48px 0 112px;
+}
 .odis-fuss-innen { display: grid; grid-template-columns: 1fr auto; gap: 28px 40px; align-items: start; }
-.odis-fuss .odisbowl-logo { font-size: 1.9rem; }
+.odis-fuss .odisbowl-logo { display: inline-flex; align-items: flex-end; }
+.odis-fuss .odisbowl-logo small { margin-bottom: 4px; }
+.odis-fuss .odisbowl-logo img { height: 132px; }
 .odis-fuss-claim { display: block; margin-top: .6rem; font-size: .72rem; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: var(--odis-schrift-leise); }
 .odis-fuss-recht { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 22px; }
 .odis-fuss-recht button {
@@ -1321,16 +1367,25 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
     .odis-info-raster { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
-    :root { --o-kopf-h: 58px; }
+    :root { --o-kopf-h: 64px; }
     .odisbowl-header-inner { padding: 0 16px; }
-    .odisbowl-logo { font-size: 1.38rem; }
-    .odisbowl-logo small { font-size: .6rem; padding-left: .55rem; margin-left: .3rem; }
+    .odisbowl-logo { gap: .65rem; }
+    .odisbowl-logo img { height: 52px; }
+    .odisbowl-logo small { font-size: .6rem; padding-left: .65rem; }
+    .odis-fuss .odisbowl-logo img { height: 112px; }
     .search-bar-wrap.open { max-width: 170px; }
     .search-bar-wrap input { width: 110px; }
 
-    .odis-hero { display: block; min-height: 0; padding-top: var(--o-kopf-h); background: var(--o-schiefer); }
+    .odis-hero {
+        display: block; min-height: 0; padding-top: var(--o-kopf-h);
+        background:
+            radial-gradient(70% 34% at 50% 22%, rgba(142, 186, 67, .24) 0%, rgba(142, 186, 67, 0) 75%),
+            radial-gradient(50% 24% at 100% 4%, rgba(238, 138, 52, .14) 0%, rgba(238, 138, 52, 0) 75%),
+            linear-gradient(180deg, #ffffff 0%, var(--odis-flaeche) 100%);
+    }
     .odis-hero-bild { position: relative; top: auto; right: auto; transform: none; width: min(74vw, 36svh); margin: 22px auto 0; }
-    .odis-hero-bild img { filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .55)); }
+    .odis-hero-bild img { filter: drop-shadow(0 16px 18px rgba(44, 62, 30, .22)); }
+    .odis-hero .odis-hero-ort { margin-bottom: 1rem; font-size: .7rem; letter-spacing: .2em; }
     .odis-hero-innen { margin-top: 0; padding: 22px 20px 36px; }
     .odis-hero-ort { margin-bottom: .7rem; }
     .odis-hero h1 { font-size: clamp(2.6rem, 12.5vw, 3.3rem); margin-bottom: 1rem; }
@@ -1410,7 +1465,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 /* ── Abholung / Lieferung (Abed, 17.11.2026 abends) ────────── */
 .liefer-umschalter {
     display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 0 0 12px;
-    background: var(--o-schiefer-tief); border: 1px solid var(--odis-rahmen); border-radius: 999px;
+    background: var(--odis-flaeche); border: 1px solid var(--odis-rahmen); border-radius: 999px;
 }
 .liefer-umschalter button {
     appearance: none; border: 0; border-radius: 999px; min-height: 40px; padding: 0 12px; cursor: pointer;
@@ -1419,7 +1474,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
     transition: background .2s ease, color .2s ease;
 }
 .liefer-umschalter button:hover { color: var(--odis-schrift); }
-.liefer-umschalter button[aria-pressed="true"] { background: var(--o-gruen); color: #1b1a1e; }
+.liefer-umschalter button[aria-pressed="true"] { background: var(--o-gruen); color: #fff; }
 .liefer-umschalter button:disabled { opacity: .45; cursor: not-allowed; }
 #mobileCartPanel .liefer-umschalter button { min-height: 44px; font-size: 15px; }
 .liefer-hinweis { margin: 0 0 14px; font-size: 12.5px; line-height: 1.5; color: var(--odis-schrift-leise); }
@@ -1436,7 +1491,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 .liefer-zonen li.kopf span { color: var(--odis-schrift-leise) !important; font-weight: 600 !important; }
 .liefer-warnung {
     margin: 8px 0 0; padding: 9px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 600; line-height: 1.45;
-    background: rgba(242, 107, 91, .12); border: 1px solid rgba(242, 107, 91, .35); color: #ff9a8c;
+    background: rgba(192, 53, 43, .07); border: 1px solid rgba(192, 53, 43, .32); color: #a52a21;
 }
 #mobileCartCheckoutBtn.gesperrt { opacity: .45; cursor: not-allowed !important; }
 #mobileCartCheckoutBtn.gesperrt:hover { background: var(--o-gruen) !important; }
@@ -1458,13 +1513,13 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 .liefer-info:empty { display: none; }
 .liefer-info.ok {
     padding: 10px 12px; border-radius: 10px; color: var(--odis-schrift-leise);
-    background: rgba(163, 189, 52, .1); border: 1px solid rgba(163, 189, 52, .35);
+    background: rgba(142, 186, 67, .12); border: 1px solid rgba(44, 98, 35, .3);
 }
 .liefer-info.ok strong { display: block; color: var(--odis-schrift); font-weight: 600; }
 .liefer-info.ok span { display: block; font-size: 12.5px; }
 .liefer-info.fehler {
-    padding: 10px 12px; border-radius: 10px; color: #ff9a8c;
-    background: rgba(242, 107, 91, .12); border: 1px solid rgba(242, 107, 91, .35);
+    padding: 10px 12px; border-radius: 10px; color: #a52a21;
+    background: rgba(192, 53, 43, .07); border: 1px solid rgba(192, 53, 43, .32);
 }
 
 /* Vorbestellung: Block „Wann?“ in der Kasse (19.11.2026) */
@@ -1475,10 +1530,10 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 }
 .wann-zu {
     margin: 0 0 10px; padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5; color: var(--odis-schrift);
-    background: rgba(247, 155, 32, .1); border: 1px solid rgba(247, 155, 32, .4);
+    background: rgba(238, 138, 52, .1); border: 1px solid rgba(238, 138, 52, .45);
 }
-.wann-zu strong { display: block; color: var(--o-orange); font-weight: 600; }
-.wann-zu.gesperrt { color: #ff9a8c; background: rgba(242, 107, 91, .12); border-color: rgba(242, 107, 91, .35); }
+.wann-zu strong { display: block; color: var(--o-orange-text); font-weight: 700; }
+.wann-zu.gesperrt { color: #a52a21; background: rgba(192, 53, 43, .07); border-color: rgba(192, 53, 43, .32); }
 .wann .liefer-umschalter { margin-bottom: 10px; border-radius: 14px; }
 .wann .liefer-umschalter button { min-height: 44px; padding: 6px 10px; line-height: 1.2; border-radius: 10px; }
 .wann-felder { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 10px; }
@@ -1488,8 +1543,8 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 .wann-meldung { margin-top: 8px; font-size: 12.5px; line-height: 1.45; color: var(--odis-schrift-leise); }
 .wann-meldung:empty { display: none; }
 .wann-meldung.fehler {
-    padding: 9px 12px; border-radius: 10px; font-weight: 600; color: #ff9a8c;
-    background: rgba(242, 107, 91, .12); border: 1px solid rgba(242, 107, 91, .35);
+    padding: 9px 12px; border-radius: 10px; font-weight: 600; color: #a52a21;
+    background: rgba(192, 53, 43, .07); border: 1px solid rgba(192, 53, 43, .32);
 }
 .wann-meldung button {
     background: none; border: 0; padding: 0; margin-left: 4px; font: inherit; color: var(--odis-schrift);
@@ -1503,7 +1558,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 .product-item.nur-im-laden:hover .card-img { transform: none; }
 .nur-im-laden-schild {
     display: inline-flex; align-items: center; gap: .45rem; padding: 8px 14px; border-radius: 999px;
-    background: rgba(196, 138, 214, .14); border: 1px solid rgba(196, 138, 214, .5); color: #dcb3e8;
+    background: rgba(122, 61, 138, .08); border: 1px solid rgba(122, 61, 138, .4); color: var(--o-violett);
     font-size: .82rem; font-weight: 700; letter-spacing: .02em; white-space: nowrap;
 }
 .nur-im-laden-schild svg { width: 16px; height: 16px; flex: none; }
@@ -1528,7 +1583,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
     padding-top: 0; font-size: .7rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--odis-schrift-leise);
 }
 .odis-zonen td { padding-left: 16px; font-family: var(--o-display); font-size: 1.2rem; letter-spacing: .02em; color: var(--odis-schrift); }
-.odis-zonen td + td { color: var(--o-orange); }
+.odis-zonen td + td { color: var(--o-orange-text); }
 .odis-info-klein { margin: 0 0 1.8rem; max-width: 32rem; font-size: .85rem; line-height: 1.55; color: var(--odis-schrift-leise); }
 /* FARBEN:EIGEN:ENDE */
 </style>
@@ -1543,7 +1598,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 <header class="odisbowl-header" id="odisbowlHeader">
   <div class="odisbowl-header-inner">
     <a class="odisbowl-logo" href="#" aria-label="Odi’s Bowl Ahaus – zum Seitenanfang">
-      <span>Odi’s</span> <em>Bowl</em><small>Ahaus</small>
+      <picture><source type="image/webp" srcset="img/logo.webp?v=2026-11-19"><img src="img/logo.png?v=2026-11-19" width="74" height="66" alt="Odi’s Bowl – Frisch, gesund, lecker"></picture><small>Ahaus</small>
     </a>
     <!-- Suchleiste -->
     <div class="search-bar-wrap" id="searchBarWrap">
@@ -4713,9 +4768,7 @@ function confirmFamSelection() {
 <footer class="odis-fuss">
   <div class="odis-wrap odis-fuss-innen">
     <div>
-      <a class="odisbowl-logo" href="#" aria-label="Odi’s Bowl Ahaus – zum Seitenanfang"><span>Odi’s</span> <em>Bowl</em><small>Ahaus</small></a>
-      <span class="odis-fuss-claim">Frisch · Gesund · Lecker</span>
-    </div>
+      <a class="odisbowl-logo" href="#" aria-label="Odi’s Bowl Ahaus – zum Seitenanfang"><picture><source type="image/webp" srcset="img/logo.webp?v=2026-11-19"><img src="img/logo.png?v=2026-11-19" width="148" height="132" loading="lazy" alt="Odi’s Bowl – Frisch, gesund, lecker"></picture><small>Ahaus</small></a>    </div>
     <nav class="odis-fuss-recht" aria-label="Rechtliches">
       <button type="button" onclick="openLegal('impressum')">Impressum</button>
       <button type="button" onclick="openLegal('agb')">AGB</button>

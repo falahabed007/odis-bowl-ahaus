@@ -4,16 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mein Konto – Odi’s Bowl Ahaus</title>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png?v=2026-11-19">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png?v=2026-11-19">
   <link href="fonts/fonts-account.css" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     /* FARBEN:START – erzeugt aus palette in stammdaten.json, nicht von Hand aendern */
     :root {
-      --odis-grund: #1b1a1e; --odis-flaeche: #232227; --odis-flaeche-2: #2d2c32; --odis-rahmen: #3d3b43;
-      --odis-schrift: #f4eee6; --odis-schrift-leise: #b3aba0;
-      --odis-akzent: #a3bd34; --odis-akzent-2: #f79b20; --odis-auf-akzent: #1b1a1e;
-      --odis-rot: #f26b5b; --odis-gruen: #7ccf8a;
+      --odis-grund: #ffffff; --odis-flaeche: #f6f7f1; --odis-flaeche-2: #eceee4; --odis-rahmen: #dde1d3;
+      --odis-schrift: #1c2419; --odis-schrift-leise: #59634f;
+      --odis-akzent: #2c6223; --odis-akzent-2: #c2461b; --odis-auf-akzent: #ffffff;
+      --odis-rot: #c0352b; --odis-gruen: #2a6f2e;
       /* Namen aus der Vorlage, damit vorhandenes var(...) weiter traegt */
       --odis-blue: var(--odis-akzent); --odis-gold: var(--odis-akzent);
       --odis-red: var(--odis-rot);
@@ -304,33 +307,35 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .loading-state { text-align: center; padding: 32px; color: var(--odis-akzent); font-size: 14px; }
-    /* FARBEN:EIGEN:START – wie die Bestellseite: Schiefer, Grün (ODI’S), Orange (BOWL).
+    /* FARBEN:EIGEN:START – wie die Bestellseite: hell in den Farben des Ladenlogos
+       (Logo von Abed am 19.11.2026): Dunkelgrün #2c6223 (ODI’S), Hellgrün #8eba43,
+       Orange #ee8a34 (BOWL), Rotorange #dd5426 (Band). Kontraste: Weiß auf Grün 7,3:1,
+       Schrift #1c2419 auf Weiß 16:1, leise #59634f 6,3:1, Beträge #c2461b 5,0:1.
        erscheinungsbild.js lässt diesen Block stehen. */
     :root {
-      color-scheme: dark;
-      --o-gruen: #a3bd34; --o-gruen-hell: #b6cf4a; --o-orange: #f79b20; --o-lachs: #f57522;
-      --o-linie: rgba(244, 238, 230, .09);
+      color-scheme: light;
+      --o-gruen: #2c6223; --o-gruen-hell: #235019; --o-hellgruen: #8eba43;
+      --o-orange: #ee8a34; --o-orange-text: #c2461b; --o-lachs: #dd5426;
+      --o-linie: rgba(28, 36, 25, .12);
       --o-display: 'Oswald', 'Arial Narrow', Arial, sans-serif;
     }
     body { background: var(--odis-grund); color: var(--odis-schrift); -webkit-font-smoothing: antialiased; }
     :focus-visible { outline: 2px solid var(--o-gruen); outline-offset: 3px; }
     .header {
-      background: #141316; border-bottom: 1px solid var(--o-linie);
-      height: 64px; padding: 0 24px; box-sizing: border-box;
+      background: rgba(255, 255, 255, .94); border-bottom: 1px solid var(--o-linie);
+      box-shadow: 0 10px 30px -24px rgba(28, 36, 25, .45);
+      height: 80px; padding: 0 24px; box-sizing: border-box;
     }
-    .header-logo {
-      font-family: var(--o-display); font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
-      font-size: 24px; line-height: 1; color: var(--o-gruen); display: flex; align-items: baseline; gap: .35rem;
-    }
-    .header-logo span { color: var(--o-lachs); }
+    .header-logo { display: flex; align-items: center; gap: .9rem; line-height: 1; }
+    .header-logo img { display: block; height: 66px; width: auto; }
     .header-logo small {
-      align-self: center; margin-left: .45rem; padding-left: .7rem; border-left: 1px solid var(--odis-rahmen);
-      font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: .24em; color: var(--odis-schrift-leise);
+      padding-left: .9rem; border-left: 1px solid var(--odis-rahmen);
+      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: var(--odis-schrift-leise);
     }
-    .header-back { color: var(--odis-schrift-leise); }
-    .header-back:hover { color: var(--odis-schrift); }
+    .header-back { color: var(--o-gruen); font-weight: 600; }
+    .header-back:hover { color: var(--o-gruen-hell); text-decoration: underline; }
     .container { padding-top: 48px; }
-    .auth-card { background: var(--odis-flaeche); border: 1px solid var(--o-linie); border-radius: 22px; box-shadow: 0 40px 80px -40px rgba(0, 0, 0, .8); }
+    .auth-card { background: var(--odis-grund); border: 1px solid var(--odis-rahmen); border-radius: 22px; box-shadow: 0 30px 60px -36px rgba(28, 36, 25, .35); }
     .auth-tabs { border-bottom: 1px solid var(--o-linie); }
     .auth-tab { color: var(--odis-schrift-leise); font-family: 'DM Sans', sans-serif; padding: 18px 16px; }
     .auth-tab:hover { color: var(--odis-schrift); }
@@ -346,35 +351,35 @@
     .field label { color: var(--odis-schrift); }
     .field label span[style] { color: var(--odis-schrift-leise) !important; }
     .field input {
-      background: var(--odis-flaeche-2); color: var(--odis-schrift);
+      background: var(--odis-grund); color: var(--odis-schrift);
       border: 1px solid var(--odis-rahmen); border-radius: 12px; padding: 12px 14px;
     }
     .field input::placeholder { color: var(--odis-schrift-leise); opacity: 1; }
-    .field input:focus { background: var(--odis-flaeche-2); border-color: var(--o-gruen); box-shadow: 0 0 0 3px rgba(163, 189, 52, .18); }
+    .field input:focus { background: var(--odis-grund); border-color: var(--o-gruen); box-shadow: 0 0 0 3px rgba(142, 186, 67, .3); }
     #register-form label > span[style] { color: var(--odis-schrift-leise) !important; }
     #register-form label > span[style] button { color: var(--o-gruen) !important; }
     input[type="checkbox"] { accent-color: var(--o-gruen) !important; }
-    .btn { background: var(--o-gruen); color: #1b1a1e; border-radius: 999px; font-weight: 700; padding: 14px; }
+    .btn { background: var(--o-gruen); color: #fff; border-radius: 999px; font-weight: 700; padding: 14px; }
     .btn:hover { background: var(--o-gruen-hell); }
     .btn-secondary { background: transparent; color: var(--odis-schrift); border: 1px solid var(--odis-rahmen); }
     .btn-secondary:hover { background: transparent; color: var(--o-gruen); border-color: var(--o-gruen); }
-    .error-msg { background: rgba(242, 107, 91, .1); border-radius: 12px; }
-    .success-msg { background: rgba(124, 207, 138, .1); border-radius: 12px; }
+    .error-msg { background: rgba(192, 53, 43, .07); color: #a52a21; border-radius: 12px; }
+    .success-msg { background: rgba(142, 186, 67, .14); color: var(--odis-gruen); border-radius: 12px; }
     .logout-btn { color: var(--odis-schrift); border: 1px solid var(--odis-rahmen); border-radius: 999px; }
     .logout-btn:hover { color: var(--o-gruen); border-color: var(--o-gruen); }
     .dash-tabs { border-bottom: 1px solid var(--o-linie); }
     .dash-tab { color: var(--odis-schrift-leise); }
     .dash-tab:hover { color: var(--odis-schrift); }
     .dash-tab.active { color: var(--odis-schrift); border-bottom-color: var(--o-gruen); }
-    .order-card, .profile-card { border: 1px solid var(--o-linie); border-radius: 18px; }
+    .order-card, .profile-card { background: var(--odis-grund); border: 1px solid var(--odis-rahmen); border-radius: 18px; }
     .order-card-head, .order-card-foot { border-color: var(--o-linie); }
     .order-items li::before { color: var(--o-gruen); }
-    .order-total { color: var(--o-orange); }
-    .btn .spinner { border-color: rgba(27, 26, 30, .25); border-top-color: #1b1a1e; }
-    .spinner { border-color: rgba(244, 238, 230, .2); border-top-color: var(--o-gruen); }
-    #datenschutzModal { background: rgba(8, 8, 10, .72) !important; }
-    #datenschutzModal > div { border: 1px solid var(--o-linie); }
-    #datenschutzModal > div > div:first-child { background: var(--odis-flaeche-2) !important; border-bottom: 1px solid var(--odis-rahmen); }
+    .order-total { color: var(--o-orange-text); }
+    .btn .spinner { border-color: rgba(255, 255, 255, .35); border-top-color: #fff; }
+    .spinner { border-color: rgba(28, 36, 25, .14); border-top-color: var(--o-gruen); }
+    #datenschutzModal { background: rgba(28, 36, 25, .45) !important; }
+    #datenschutzModal > div { border: 1px solid var(--o-linie); background: var(--odis-grund) !important; box-shadow: 0 30px 70px -30px rgba(28, 36, 25, .45) !important; }
+    #datenschutzModal > div > div:first-child { background: var(--odis-flaeche) !important; border-bottom: 1px solid var(--odis-rahmen); }
     #datenschutzModal > div > div:first-child span {
       color: var(--odis-schrift) !important; font-family: var(--o-display); text-transform: uppercase; letter-spacing: .03em; font-size: 1.15rem !important;
     }
@@ -384,10 +389,10 @@
     }
     #datenschutzModal h3, #datenschutzModal h4 { color: var(--odis-schrift) !important; }
     #datenschutzModal h3 { font-family: var(--o-display); text-transform: uppercase; letter-spacing: .02em; }
-    #datenschutzModal a { color: var(--o-gruen); }
+    #datenschutzModal a { color: var(--o-gruen) !important; }
     @media (max-width: 480px) {
-      .header { padding: 0 16px; }
-      .header-logo { font-size: 20px; }
+      .header { padding: 0 16px; height: 64px; }
+      .header-logo img { height: 52px; }
       .header-logo small { display: none; }
       .header-back { font-size: 13px; }
       .auth-form { padding: 26px 20px 28px; }
@@ -402,7 +407,7 @@
 
 <div class="header">
   <a href="index.html">
-    <span class="header-logo">Odi’s <span>Bowl</span><small>Ahaus</small></span>
+    <span class="header-logo"><picture><source type="image/webp" srcset="img/logo.webp?v=2026-11-19"><img src="img/logo.png?v=2026-11-19" width="74" height="66" alt="Odi’s Bowl – Frisch, gesund, lecker"></picture><small>Ahaus</small></span>
   </a>
   <a href="index.html" class="header-back">← Zurück zur Speisekarte</a>
 </div>
