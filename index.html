@@ -746,7 +746,7 @@
     border-radius: 50%; animation: warteSpin .7s linear infinite;
 }
 
-/* FARBEN:EIGEN:START – Gestaltung nach dem Bühnenfoto img/hero-bowl.jpg (Abed, 17.11.2026).
+/* FARBEN:EIGEN:START – Gestaltung nach dem ersten Bühnenfoto (Abed, 17.11.2026; Foto am 19.11.2026 getauscht).
    erscheinungsbild.js lässt diesen Block stehen. Grund = Schiefer unten im Foto,
    Grün = Edamame/Logo "ODI’S", Orange = Karotte/Logo "BOWL", Violett = Rotkohl (nur Açaí).
    Kontraste: Schrift #f4eee6 auf #1b1a1e 15:1, #1b1a1e auf Grün #a3bd34 8,2:1,
@@ -829,22 +829,20 @@ button, input, select, textarea { font-family: inherit; }
     min-height: min(100svh, 880px); padding: var(--o-kopf-h) 0 0;
     background: radial-gradient(60% 80% at 76% 54%, #232127 0%, var(--o-schiefer) 70%);
 }
+/* Die Bowl ist freigestellt (rund, durchsichtiger Rand) und steht mit eigenem
+   Schatten auf dem Schiefergrund – kein Bildkasten, keine Maske. */
 .odis-hero-bild {
-    position: absolute; top: 0; right: 0; bottom: 0; width: min(62vw, 940px); margin: 0; z-index: 0;
-    display: block;
+    position: absolute; top: calc(50% + var(--o-kopf-h) / 2); right: max(28px, calc((100vw - 1200px) / 2 - 36px));
+    width: min(43vw, 600px, 74svh); aspect-ratio: 1; margin: 0; z-index: 0;
+    display: block; transform: translateY(-50%);
+}
+.odis-hero-bild::before {
+    content: ""; position: absolute; inset: -9%; border-radius: 50%; z-index: -1;
+    background: radial-gradient(closest-side, rgba(163, 189, 52, .13), rgba(247, 155, 32, .05) 62%, transparent 100%);
 }
 .odis-hero-bild img {
-    display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 74%;
-    /* Bildränder sind unterschiedlich hell (oben #4c4345, rechts #493833):
-       zu allen Seiten weich in den Schiefergrund auslaufen lassen */
-    -webkit-mask-image:
-        linear-gradient(to right, transparent 0%, #000 36%, #000 90%, transparent 100%),
-        linear-gradient(to bottom, transparent 0%, #000 18%, #000 80%, transparent 100%);
-    -webkit-mask-composite: source-in;
-            mask-image:
-        linear-gradient(to right, transparent 0%, #000 36%, #000 90%, transparent 100%),
-        linear-gradient(to bottom, transparent 0%, #000 18%, #000 80%, transparent 100%);
-            mask-composite: intersect;
+    display: block; width: 100%; height: 100%; object-fit: contain;
+    filter: drop-shadow(0 30px 38px rgba(0, 0, 0, .6));
     animation: odis-bild-ein 1.4s cubic-bezier(.2, .7, .2, 1) both;
 }
 .odis-hero-innen {
@@ -1230,6 +1228,37 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 
 .warte-spinner { border-color: rgba(244, 238, 230, .15); border-top-color: var(--o-gruen); }
 
+/* ── Açaí: nur vor Ort, Flyer des Ladens (Abed, 19.11.2026) ── */
+.odis-acai { padding: 88px 0 24px; scroll-margin-top: calc(var(--o-kopf-h) + 12px); }
+.odis-acai-raster {
+    display: grid; grid-template-columns: 1fr minmax(0, 440px); gap: 40px 72px; align-items: center;
+    padding: 44px 48px; border: 1px solid rgba(196, 138, 214, .28); border-radius: 28px;
+    background: radial-gradient(90% 120% at 100% 0%, rgba(196, 138, 214, .12), transparent 60%), var(--o-schiefer-tief);
+}
+.odis-acai .odis-kicker { color: var(--o-violett); }
+.odis-acai .odis-abschnitt-titel { font-size: clamp(1.9rem, 3.6vw, 2.9rem); margin-bottom: 1rem; }
+.odis-acai-lead { color: var(--odis-schrift-leise); font-size: 1.02rem; line-height: 1.65; max-width: 46ch; margin: 0 0 1.6rem; }
+.odis-acai-lead strong { color: var(--odis-schrift); font-weight: 600; }
+.odis-acai-preise { display: flex; gap: 14px; margin: 0 0 1.6rem; }
+.odis-acai-preise > div { padding: 12px 20px; border-radius: 14px; border: 1px solid rgba(196, 138, 214, .35); background: rgba(196, 138, 214, .08); }
+.odis-acai-preise dt { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--o-violett); margin-bottom: .15rem; }
+.odis-acai-preise dd { margin: 0; font-family: 'Oswald', sans-serif; font-size: 1.5rem; color: var(--odis-schrift); }
+.odis-acai-ort { margin: 0; color: var(--odis-schrift-leise); font-size: .95rem; }
+.odis-acai-ort a { color: var(--odis-schrift); text-decoration: none; border-bottom: 1px solid var(--o-violett); white-space: nowrap; }
+.odis-acai-flyer { display: block; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 60px -28px rgba(0, 0, 0, .8); transform: rotate(1.2deg); transition: transform .3s ease; }
+.odis-acai-flyer:hover, .odis-acai-flyer:focus-visible { transform: none; }
+.odis-acai-flyer img { display: block; width: 100%; height: auto; }
+.odis-acai-flyer span {
+    display: block; padding: 10px 14px; text-align: center; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase;
+    background: #4a1f52; color: #f4eee6;
+}
+@media (max-width: 860px) {
+    .odis-acai { padding: 56px 0 8px; }
+    .odis-acai-raster { grid-template-columns: 1fr; padding: 28px 20px; border-radius: 22px; gap: 28px; }
+    .odis-acai-flyer { transform: none; max-width: 460px; margin: 0 auto; }
+}
+@media (prefers-reduced-motion: reduce) { .odis-acai-flyer { transition: none; } }
+
 /* ── Abholung und Öffnungszeiten ───────────────────────────── */
 .odis-info { padding: 88px 0 96px; }
 .odis-info-raster {
@@ -1296,13 +1325,9 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
     .search-bar-wrap input { width: 110px; }
 
     .odis-hero { display: block; min-height: 0; padding-top: var(--o-kopf-h); background: var(--o-schiefer); }
-    .odis-hero-bild { position: relative; width: 100%; height: min(82vw, 38svh); }
-    .odis-hero-bild img {
-        object-position: 50% 42%;
-        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 55%, transparent 96%);
-                mask-image: linear-gradient(to bottom, transparent 0%, #000 10%, #000 55%, transparent 96%);
-    }
-    .odis-hero-innen { margin-top: -48px; padding: 0 20px 36px; }
+    .odis-hero-bild { position: relative; top: auto; right: auto; transform: none; width: min(74vw, 36svh); margin: 22px auto 0; }
+    .odis-hero-bild img { filter: drop-shadow(0 18px 22px rgba(0, 0, 0, .55)); }
+    .odis-hero-innen { margin-top: 0; padding: 22px 20px 36px; }
     .odis-hero-ort { margin-bottom: .7rem; }
     .odis-hero h1 { font-size: clamp(2.6rem, 12.5vw, 3.3rem); margin-bottom: 1rem; }
     .odis-hero-lead { font-size: .98rem; line-height: 1.55; margin-bottom: 1.3rem; }
@@ -1439,7 +1464,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
 }
 
 /* Açaí: sichtbar, aber nur im Laden */
-.product-item.nur-im-laden, .product-item.nur-im-laden:hover { cursor: default; transform: none; box-shadow: none; }
+.product-item.nur-im-laden, .product-item.nur-im-laden:hover { cursor: pointer; transform: none; box-shadow: none; }
 .product-item[data-bk].nur-im-laden:hover { border-color: var(--o-linie); }
 .product-item.nur-im-laden:hover .card-img { transform: none; }
 .nur-im-laden-schild {
@@ -1579,15 +1604,14 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
     </div>
 
     <!-- FARBEN:EIGEN:START -->
-    <!-- ═══ ODI’S AHAUS: BÜHNE ═══ Foto img/hero-bowl.* (Herkunft in img/QUELLEN.md).
-         Am Handy der quadratische Ausschnitt, auf großen Bildschirmen das Hochformat. -->
+    <!-- ═══ ODI’S AHAUS: BÜHNE ═══ Foto img/hero-bowl.* (Herkunft in img/QUELLEN.md),
+         freigestellt mit durchsichtigem Rand. Am Handy die kleinere Datei. -->
     <section class="odis-hero" aria-labelledby="odis-hero-titel">
       <picture class="odis-hero-bild">
-        <source media="(max-width: 760px)" type="image/webp" srcset="img/hero-bowl-quadrat.webp">
-        <source media="(max-width: 760px)" srcset="img/hero-bowl-quadrat.jpg">
-        <source type="image/webp" srcset="img/hero-bowl.webp">
-        <img src="img/hero-bowl.jpg" width="896" height="1344" fetchpriority="high"
-             alt="Bunte Bowl von oben auf dunklem Stein, daneben Basilikum, Sesam und Stäbchen">
+        <source media="(max-width: 760px)" type="image/webp" srcset="img/hero-bowl-klein.webp?v=2026-11-19">
+        <source type="image/webp" srcset="img/hero-bowl.webp?v=2026-11-19">
+        <img src="img/hero-bowl.png?v=2026-11-19" width="840" height="840" fetchpriority="high"
+             alt="Bowl von oben mit Reis, Teriyaki-Hähnchen, Edamame, Gurke, Mango, Karotte und roten Zwiebeln">
       </picture>
       <div class="odis-hero-innen">
         <div class="odis-hero-text">
@@ -1757,7 +1781,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
     </div>
     <div class="product-item" onclick="openBaukasten(this)" data-bk="A1" style="cursor: pointer;">
         <div class="product-info"><h3>Açaí-Bowl</h3><p>Eine Sauce, zwei Layer, drei Toppings</p></div>
-        <div class="price">ab 8,90 €</div>
+        <div class="price">ab 7,90 €</div>
     </div>
     <h2 class="category-title" id="getraenke">Erfrischendes</h2>
     <p class="category-note">Alle Getränke 2,90 €.</p>
@@ -1801,7 +1825,7 @@ body:has(#legalOv[style*="display: block"]) .mobile-cart-btn { display: none !im
         <div class="product-info"><h3>Töftes Mineralwasser Still</h3></div>
         <div class="price">2,90 €</div>
     </div>
-    <script>window.BAUKASTEN = {"B1":{"name":"Bowl","preis":12.9,"menue":{"aufpreis":2,"getraenke":["Coca-Cola Original","Coca-Cola Zero","Proviant Bio Limonade Rhabarber","Proviant Bio Limonade Limette & Minze","Richard's Sun Ice Tea Peach","Richard's Sun Ice Tea Pomegranate","Richard's Sun Ice Tea Watermelon & Pineapple","Gesaris Apfelschorle","Töftes Mineralwasser Classic","Töftes Mineralwasser Still"]},"schritte":[{"titel":"Basic","min":1,"max":1,"optionen":["Basmati-Reis","Frischer Blattsalatmix","Mixed-Bowl (halb/halb)"]},{"titel":"Gemüse & Obst","hinweis":"bis zu 5 inklusive, jede weitere +1,00 €","min":0,"inklusive":5,"aufpreis":1,"optionen":["Avocado-Hummus","Brokkoli","Bulgur","Champignons","Cherry-Tomaten","Cole Slaw Salat","Edamame","Edamame Spicy","Geb. Blumenkohl","Gurken","Hirtenkäse-Würfel","Jalapeños","Karottensalat","Kichererbsen","Kimchi","Mais","Mango-Würfel","Paprika","Rote Bete","Rotkohl","Süßkartoffeln","Tomatensalat","Wakame","Zwiebelsalat"]},{"titel":"Hot Special","hinweis":"bitte wählen · eins inklusive, jedes weitere +2,50 €","min":1,"inklusive":1,"aufpreis":2.5,"gruppen":[{"titel":"Vegan","optionen":["Beef Bites","Teriyaki Tofu","Peanuts Chicken"]},{"titel":"Fleisch","optionen":["Creamie Chicken","Curry Chicken","Teriyaki Chicken","Crispy Chicken","Chicken Bites"]}]},{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":0,"inklusive":1,"aufpreis":1,"optionen":["Avocado Sesam","Curry Mango","Erdnuss","Honig Senf","Hot Sriracha","Sriracha Mayo","Süß-Sauer","Roasted Sesam"]},{"titel":"Topping","hinweis":"alle inklusive, gern mehrere","min":0,"optionen":["Erdnüsse","Röstzwiebeln","Sesam","Granatapfel"]}]},"W1":{"name":"Wrap","preis":8.9,"menue":{"aufpreis":2,"getraenke":["Coca-Cola Original","Coca-Cola Zero","Proviant Bio Limonade Rhabarber","Proviant Bio Limonade Limette & Minze","Richard's Sun Ice Tea Peach","Richard's Sun Ice Tea Pomegranate","Richard's Sun Ice Tea Watermelon & Pineapple","Gesaris Apfelschorle","Töftes Mineralwasser Classic","Töftes Mineralwasser Still"]},"schritte":[{"titel":"Basic","min":1,"max":1,"optionen":["Frischer Blattsalatmix","Krautsalat","Mixed-Wrap (halb/halb)"]},{"titel":"Gemüse & Obst","hinweis":"bis zu 3 inklusive, jede weitere +1,00 €","min":0,"inklusive":3,"aufpreis":1,"optionen":["Avocado-Hummus","Brokkoli","Bulgur","Champignons","Cherry-Tomaten","Cole Slaw Salat","Edamame","Edamame Spicy","Geb. Blumenkohl","Gurken","Hirtenkäse-Würfel","Jalapeños","Karottensalat","Kichererbsen","Kimchi","Mais","Mango-Würfel","Paprika","Rote Bete","Rotkohl","Süßkartoffeln","Tomatensalat","Wakame","Zwiebelsalat"]},{"titel":"Hot Special","hinweis":"bitte wählen · eins inklusive, jedes weitere +2,50 €","min":1,"inklusive":1,"aufpreis":2.5,"gruppen":[{"titel":"Vegan","optionen":["Beef Bites","Peanuts Chicken"]},{"titel":"Fleisch","optionen":["Crispy Chicken","Chicken Stripes"]}]},{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":0,"inklusive":1,"aufpreis":1,"optionen":["Avocado Sesam","Curry Mango","Erdnuss","Honig Senf","Hot Sriracha","Sriracha Mayo","Süß-Sauer","Roasted Sesam"]},{"titel":"Topping","hinweis":"alle inklusive, gern mehrere","min":0,"optionen":["Erdnüsse","Röstzwiebeln","Sesam","Granatapfel"]}]},"A1":{"name":"Açaí-Bowl","groessen":{"Classic":8.9,"Large":9.9},"farbe":"#6b2c74","schritte":[{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":1,"inklusive":1,"aufpreis":1,"optionen":["Choco","Haselnuss","Pistazie","White Chocolate"]},{"titel":"Layer","hinweis":"zwei inklusive, jeder weitere +1,00 €","min":2,"inklusive":2,"aufpreis":1,"optionen":["Granola","Granola Choco","Peanut Butter","Chia-Pudding","Smashed Mango","Lotus Crumbles","Oreo Crumbles"]},{"titel":"Toppings","hinweis":"drei inklusive, jedes weitere +1,00 €","min":3,"inklusive":3,"aufpreis":1,"optionen":["Banane","Blaubeere","Erdbeere","Kiwi","Erdnüsse","Kakaonibs","Kokoschips"]}]}};</script>
+    <script>window.BAUKASTEN = {"B1":{"name":"Bowl","preis":12.9,"menue":{"aufpreis":2,"getraenke":["Coca-Cola Original","Coca-Cola Zero","Proviant Bio Limonade Rhabarber","Proviant Bio Limonade Limette & Minze","Richard's Sun Ice Tea Peach","Richard's Sun Ice Tea Pomegranate","Richard's Sun Ice Tea Watermelon & Pineapple","Gesaris Apfelschorle","Töftes Mineralwasser Classic","Töftes Mineralwasser Still"]},"schritte":[{"titel":"Basic","min":1,"max":1,"optionen":["Basmati-Reis","Frischer Blattsalatmix","Mixed-Bowl (halb/halb)"]},{"titel":"Gemüse & Obst","hinweis":"bis zu 5 inklusive, jede weitere +1,00 €","min":0,"inklusive":5,"aufpreis":1,"optionen":["Brokkoli","Champignons","Cherry-Tomaten","Cole Slaw Salat","Edamame","Edamame Spicy","Geb. Blumenkohl","Gurken","Hirtenkäse-Würfel","Jalapeños","Karottensalat","Kichererbsen","Kimchi","Mais","Mango-Würfel","Paprika","Rote Bete","Rotkohl","Süßkartoffeln","Tomatensalat","Wakame","Zwiebelsalat"]},{"titel":"Hot Special","hinweis":"bitte wählen · eins inklusive, jedes weitere +2,50 €","min":1,"inklusive":1,"aufpreis":2.5,"gruppen":[{"titel":"Vegan","optionen":["Beef Bites","Teriyaki Tofu","Peanuts Chicken"]},{"titel":"Fleisch","optionen":["Creamie Chicken","Curry Chicken","Teriyaki Chicken","Crispy Chicken","Chicken Bites"]}]},{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":0,"inklusive":1,"aufpreis":1,"optionen":["Avocado Sesam","Curry Mango","Erdnuss","Honig Senf","Hot Sriracha","Sriracha Mayo","Süß-Sauer","Roasted Sesam"]},{"titel":"Topping","hinweis":"alle inklusive, gern mehrere","min":0,"optionen":["Erdnüsse","Röstzwiebeln","Sesam","Granatapfel"]}]},"W1":{"name":"Wrap","preis":8.9,"menue":{"aufpreis":2,"getraenke":["Coca-Cola Original","Coca-Cola Zero","Proviant Bio Limonade Rhabarber","Proviant Bio Limonade Limette & Minze","Richard's Sun Ice Tea Peach","Richard's Sun Ice Tea Pomegranate","Richard's Sun Ice Tea Watermelon & Pineapple","Gesaris Apfelschorle","Töftes Mineralwasser Classic","Töftes Mineralwasser Still"]},"schritte":[{"titel":"Basic","min":1,"max":1,"optionen":["Frischer Blattsalatmix","Krautsalat","Mixed-Wrap (halb/halb)"]},{"titel":"Gemüse & Obst","hinweis":"bis zu 3 inklusive, jede weitere +1,00 €","min":0,"inklusive":3,"aufpreis":1,"optionen":["Brokkoli","Champignons","Cherry-Tomaten","Cole Slaw Salat","Edamame","Edamame Spicy","Geb. Blumenkohl","Gurken","Hirtenkäse-Würfel","Jalapeños","Karottensalat","Kichererbsen","Kimchi","Mais","Mango-Würfel","Paprika","Rote Bete","Rotkohl","Süßkartoffeln","Tomatensalat","Wakame","Zwiebelsalat"]},{"titel":"Hot Special","hinweis":"bitte wählen · eins inklusive, jedes weitere +2,50 €","min":1,"inklusive":1,"aufpreis":2.5,"gruppen":[{"titel":"Vegan","optionen":["Beef Bites","Peanuts Chicken"]},{"titel":"Fleisch","optionen":["Crispy Chicken","Chicken Stripes"]}]},{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":0,"inklusive":1,"aufpreis":1,"optionen":["Avocado Sesam","Curry Mango","Erdnuss","Honig Senf","Hot Sriracha","Sriracha Mayo","Süß-Sauer","Roasted Sesam"]},{"titel":"Topping","hinweis":"alle inklusive, gern mehrere","min":0,"optionen":["Erdnüsse","Röstzwiebeln","Sesam","Granatapfel"]}]},"A1":{"name":"Açaí-Bowl","groessen":{"Classic":7.9,"Large":8.9},"farbe":"#6b2c74","schritte":[{"titel":"Sauce","hinweis":"eine inklusive, jede weitere +1,00 €","min":1,"inklusive":1,"aufpreis":1,"optionen":["Choco","Haselnuss","Pistazie","White Chocolate"]},{"titel":"Layer","hinweis":"zwei inklusive, jeder weitere +1,00 €","min":2,"inklusive":2,"aufpreis":1,"optionen":["Granola","Granola Choco","Peanut Butter","Chia-Pudding","Smashed Mango","Lotus Crumbles","Oreo Crumbles"]},{"titel":"Toppings","hinweis":"drei inklusive, jedes weitere +1,00 €","min":3,"inklusive":3,"aufpreis":1,"optionen":["Banane","Blaubeere","Erdbeere","Kiwi","Erdnüsse","Kakaonibs","Kokoschips"]}]}};</script>
     <!-- KARTE:ENDE -->
 
     </div>
@@ -4181,6 +4205,44 @@ function confirmFamSelection() {
 </div>
 
 <!-- FARBEN:EIGEN:START -->
+<!-- ═══ AÇAÍ: NUR VOR ORT ═══ Flyer des Ladens (img/acai-flyer.*, von Abed am 19.11.2026).
+     Açaí ist online nicht bestellbar (menu.json: nur_im_laden); die Preise unten
+     setzt das Skript aus window.BAUKASTEN, damit sie nicht doppelt gepflegt werden. -->
+<section class="odis-acai" id="acai" aria-labelledby="acai-titel">
+  <div class="odis-wrap">
+    <div class="odis-acai-raster">
+      <div>
+        <p class="odis-kicker">Nur vor Ort</p>
+        <h2 class="odis-abschnitt-titel" id="acai-titel">Açaí-Bowls gibt es nur bei uns im Laden</h2>
+        <p class="odis-acai-lead"><strong>Açaí kannst du nur vor Ort kaufen</strong> – online ist sie nicht bestellbar, weder zur Abholung noch zur Lieferung. Komm vorbei und stell sie dir an der Theke zusammen: eine Sauce, zwei Layer, drei Toppings.</p>
+        <dl class="odis-acai-preise">
+          <div><dt>Classic</dt><dd data-acai-preis="Classic">7,90 €</dd></div>
+          <div><dt>Large</dt><dd data-acai-preis="Large">8,90 €</dd></div>
+        </dl>
+        <p class="odis-acai-ort">Wallstraße 7, 48683 Ahaus · <a href="tel:+4925618916861">02561 8916861</a></p>
+      </div>
+      <a class="odis-acai-flyer" href="img/acai-flyer.jpg?v=2026-11-19" target="_blank" rel="noopener">
+        <picture>
+          <source type="image/webp" srcset="img/acai-flyer.webp?v=2026-11-19">
+          <img src="img/acai-flyer.jpg?v=2026-11-19" width="1100" height="1581" loading="lazy"
+               alt="Flyer Açaí-Bowls von Odi’s Bowl Ahaus: eine Sauce (Choco, Haselnuss, Pistazie, White Chocolate), zwei Layer und drei Toppings wählen. Classic 7,90 €, Large 8,90 €.">
+        </picture>
+        <span>Flyer groß ansehen</span>
+      </a>
+    </div>
+  </div>
+</section>
+<script>
+(function () {
+  var a = (window.BAUKASTEN || {}).A1, g = a && a.groessen;
+  if (!g) return;
+  document.querySelectorAll('[data-acai-preis]').forEach(function (el) {
+    var v = g[el.getAttribute('data-acai-preis')];
+    if (typeof v === 'number') el.textContent = v.toFixed(2).replace('.', ',') + ' €';
+  });
+})();
+</script>
+
 <!-- ═══ ABHOLUNG, LIEFERUNG UND ÖFFNUNGSZEITEN ═══ -->
 <section class="odis-info" id="info" aria-labelledby="info-titel">
   <div class="odis-wrap odis-info-raster">
@@ -4664,6 +4726,17 @@ document.readyState === 'loading'
     // Wasserbilder zeigen das Gesaris-Etikett) - die Karte erscheint ohne Bild.
   };
 
+  // Menuepreise aus der Karte (Abed, 19.11.2026: Bowl-Menü 14,90 €, Wrap-Menü 10,90 €).
+  function menuePreise() {
+    var bk = window.BAUKASTEN || {}, teile = [];
+    ['B1', 'W1'].forEach(function (n) {
+      var a = bk[n];
+      if (a && a.menue && typeof a.preis === 'number') {
+        teile.push(a.name + '-Menü ' + (a.preis + a.menue.aufpreis).toFixed(2).replace('.', ',') + ' €');
+      }
+    });
+    return teile.length ? teile.join(' · ') : 'Bowl oder Wrap als Menü: nur +2,00 €';
+  }
   function menueHinweis() {
     var h2 = document.getElementById('getraenke');
     if (!h2 || document.querySelector('.menue-hinweis')) return;
@@ -4672,7 +4745,7 @@ document.readyState === 'loading'
     box.setAttribute('role', 'button');
     box.setAttribute('tabindex', '0');
     box.innerHTML = '<div><small>Mit Getränk nach Wahl</small><strong>Mach’s zum Menü!</strong>'
-      + '<span>Bowl oder Wrap als Menü: nur +2,00 € – einfach beim Zusammenstellen auswählen.</span></div>'
+      + '<span>' + menuePreise() + ' – einfach beim Zusammenstellen auswählen.</span></div>'
       + '<img src="img/menu/getraenke/gruppe.png" alt="" loading="lazy">';
     box.onclick = function() { openBaukasten('B1'); };
     box.onkeydown = function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openBaukasten('B1'); } };
@@ -4778,20 +4851,25 @@ document.readyState === 'loading'
     footer.appendChild(priceDiv);
 
     // Nur im Laden (menu.json: nur_im_laden, Açaí): Karte bleibt sichtbar, aber
-    // statt des Hinzufuegen-Knopfs steht ein Schild, und ein Klick tut nichts.
+    // statt des Hinzufuegen-Knopfs steht ein Schild; ein Klick fuehrt zum
+    // Flyer-Abschnitt #acai (Abed, 19.11.2026: Gaeste sollen verstehen, warum).
     var bkArt = el.dataset.bk && (window.BAUKASTEN || {})[el.dataset.bk];
     var kartenTitel = h3 ? h3.textContent.trim() : '';
     if (typeof nurImLaden === 'function' && nurImLaden(bkArt ? bkArt.name : kartenTitel)) {
       el.removeAttribute('onclick');
       el.classList.add('nur-im-laden');
-      el.style.cursor = 'default';
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', function () {
+        var ziel = document.getElementById('acai');
+        if (ziel) ziel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
       var schild = document.createElement('span');
       schild.className = 'nur-im-laden-schild';
       schild.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5 4.4 4h11.2L17 8.5"/><path d="M3 8.5h14v1a2.3 2.3 0 0 1-4.6 0 2.4 2.4 0 0 1-4.8 0A2.3 2.3 0 0 1 3 9.5z"/><path d="M4.5 11.5V16h11v-4.5M8.5 16v-3h3v3"/></svg>Nur im Laden erhältlich';
       footer.appendChild(schild);
       var laden = document.createElement('p');
       laden.className = 'nur-im-laden-text';
-      laden.textContent = 'Online nicht bestellbar – weder zur Lieferung noch zur Abholung.';
+      laden.textContent = 'Açaí kannst du nur vor Ort kaufen – online nicht bestellbar. Flyer ansehen ›';
       infoDiv.appendChild(laden);
     } else {
       var addBtn = document.createElement('button');
