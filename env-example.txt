@@ -10,6 +10,16 @@ STRIPE_SECRET_KEY=sk_live_...              # Schluessel der FlueVate-Plattform (
 STRIPE_DIREKT_KONTO=acct_...               # eigenes Stripe-Konto des Ladens (mit der Plattform verbunden)
 STRIPE_CONNECT_WEBHOOK_SECRET=whsec_...    # Signaturgeheimnis des Connect-Webhook-Endpunkts ("Ereignisse verbundener Konten"), URL /api/stripe-webhook
 
+# PayPal: direkt auf das eigene PayPal-Geschaeftskonto des Ladens (REST-App, Live).
+# PayPal erscheint auf der Seite erst, wenn ALLE gesetzt sind, PAYPAL_ENV genau "live"
+# ist und die Anmeldung bei PayPal gelingt. Sandbox-Daten schalten PayPal nicht ein.
+# Webhook der App: https://api.odis-ahaus.com/api/paypal-webhook mit den Ereignissen
+# CHECKOUT.ORDER.APPROVED und PAYMENT.CAPTURE.COMPLETED; dessen ID kommt in PAYPAL_WEBHOOK_ID.
+PAYPAL_CLIENT_ID=
+PAYPAL_CLIENT_SECRET=
+PAYPAL_WEBHOOK_ID=
+PAYPAL_ENV=live
+
 RESEND_API_KEY=re_...
 EMAIL_FROM=Odi’s Bowl Ahaus <bestellungen@odis-ahaus.com>
 RESTAURANT_EMAIL=

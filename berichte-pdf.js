@@ -200,6 +200,7 @@ function pdfAbrechnung(doc, a) {
   block('UMSATZ');
   zeile(`Barzahlung  (${a.nLaden} Bestellungen)`, pdfFmt(a.umsatzLaden));
   if (a.nOnline) zeile(`Online-Zahlung (Ihr Stripe-Konto)  (${a.nOnline} Bestellungen)`, pdfFmt(a.umsatzOnline));
+  if (a.nPaypal) zeile(`PayPal (Ihr PayPal-Konto)  (${a.nPaypal} Bestellungen)`, pdfFmt(a.umsatzPaypal));
   zeile('Gesamtumsatz', pdfFmt(a.brutto), true);
   if (a.nOnline) {
     // Das Geld liegt schon beim Laden; Stripe zieht seine Gebuehr dort ab
@@ -209,6 +210,12 @@ function pdfAbrechnung(doc, a) {
     zeile(stripeDirekt.stripeGebText(a), stripeDirekt.stripeGebWert(a, minus));
     zeile('Verbleibt auf Ihrem Stripe-Konto', pdfFmt(a.verbleibtStripe), true);
     hinweis(stripeDirekt.stripeHinweis(a));
+  }
+  if (a.nPaypal) {
+    if (doc.y > PDF_FT - 110) { doc.addPage(); doc.y = PDF_M; }
+    block('IHR EIGENES PAYPAL-KONTO');
+    zeile(`PayPal-Umsatz  (${a.nPaypal} Bestellungen)`, pdfFmt(a.umsatzPaypal), true);
+    hinweis(stripeDirekt.paypalHinweis());
   }
   if (doc.y > PDF_FT - 150) { doc.addPage(); doc.y = PDF_M; }
   block('GEBÜHREN FLUEVATE – PER RECHNUNG UND SEPA-LASTSCHRIFT');
@@ -228,6 +235,7 @@ function pdfAbrechnung(doc, a) {
   doc.font('Helvetica').fontSize(7.5).fillColor('#888')
     .text(`Kasse ${pdfFmt(a.umsatzLaden)}`
       + (a.nOnline ? ` + Stripe-Konto ${pdfFmt(a.verbleibtStripe)}` : '')
+      + (a.nPaypal ? ` + PayPal-Konto ${pdfFmt(a.umsatzPaypal)} (vor PayPal-Gebühren)` : '')
       + ` – Lastschrift FlueVate ${pdfFmt(a.fluevate)}`, PDF_M+10, doc.y, { width: PDF_W-20 });
   doc.y += 14;
 }

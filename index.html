@@ -2625,7 +2625,7 @@ function toggleMobileMenu() {
               Ich habe die
               <button type="button" onclick="openLegal('agb');event.stopPropagation();"
                       style="background:none;border:none;color:var(--odis-akzent);font-weight:bold;cursor:pointer;font-size:13px;text-decoration:underline;padding:0;font-family:inherit;">
-                AGB &amp; Widerrufsbelehrung
+                AGB
               </button>
               gelesen und akzeptiere diese. Die Servicegebühr von 0,99&nbsp;€ gem. §&nbsp;312a BGB habe ich zur Kenntnis genommen. *
             </span>
@@ -2662,18 +2662,35 @@ function togglePaymentLogos() {
   if (ppLogo) ppLogo.style.display = zahlung.value === 'paypal' ? 'flex' : 'none';
 }
 
-// ── Online-Zahlung (Odi’s Bowl Ahaus: Stripe, kein PayPal) ───────────
+// ── Online-Zahlung (Odi’s Bowl Ahaus: Stripe, PayPal sobald eingerichtet) ──
 // Der Server meldet in /api/config, ob Stripe fertig eingerichtet ist
 // (Schluessel, Webhook-Geheimnis und Connect-Konto in Coolify). Bis dahin gibt
 // es nur Barzahlung - ein halb eingerichtetes Stripe fiele sonst erst beim
 // Bezahlen mit einer Fehlermeldung auf.
+// PayPal (direkt auf das PayPal-Konto des Ladens) steht nur in der Auswahl, wenn
+// /api/config paypal: true meldet. Sonst gibt es den Eintrag gar nicht, auch nicht
+// ausgegraut. Die Vorauswahl bleibt Online-Zahlung (Stripe), sonst bar.
 window.ONLINE_ZAHLUNG_AKTIV = false;
+window.PAYPAL_AKTIV = false;
+
+function paypalEintragSetzen(sel) {
+  var pp = sel.querySelector('option[value="paypal"]');
+  if (window.PAYPAL_AKTIV && !pp) {
+    pp = document.createElement('option');
+    pp.value = 'paypal';
+    pp.textContent = 'PayPal';
+    sel.insertBefore(pp, sel.querySelector('option[value="bar"]'));
+  } else if (!window.PAYPAL_AKTIV && pp) {
+    pp.remove();
+  }
+}
 
 function applyZahlungsarten() {
   var sel = document.getElementById('c-zahlung');
   if (!sel) return;
   var stripe = sel.querySelector('option[value="stripe"]');
-  if (stripe) stripe.disabled = !window.ONLINE_ZAHLUNG_AKTIV;
+  if (stripe) { stripe.disabled = !window.ONLINE_ZAHLUNG_AKTIV; stripe.hidden = !window.ONLINE_ZAHLUNG_AKTIV; }
+  paypalEintragSetzen(sel);
   if (window.ONLINE_ZAHLUNG_AKTIV) {
     // Vorauswahl Online-Zahlung wie bei den anderen Kartenstandorten (Abed,
     // 22.10.2026). Laeuft einmal nach /api/config, bevor jemand die Kasse oeffnet.
@@ -2685,6 +2702,15 @@ function applyZahlungsarten() {
     return;
   }
   sel.value = 'bar';
+
+  // Nur PayPal und bar: Auswahl zeigen, Vorauswahl bar
+  if (window.PAYPAL_AKTIV) {
+    sel.style.display = '';
+    var h2 = document.getElementById('zahlung-hinweis');
+    if (h2) h2.style.display = 'none';
+    togglePaymentLogos();
+    return;
+  }
 
   // Ein Auswahlfeld mit einem einzigen Eintrag wirkt kaputt – stattdessen
   // die feste Zeile zeigen. Das <select> bleibt im DOM, damit processOrder
@@ -2702,6 +2728,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(function(r) { return r.json(); })
     .then(function(c) {
       window.ONLINE_ZAHLUNG_AKTIV = c.onlineZahlung === true;
+      window.PAYPAL_AKTIV = c.paypal === true;   // fehlt das Feld (alter Server): kein PayPal
       // Lieferung: Ein Server-Stand ohne Lieferung (nurAbholung) schaltet sie hier ab.
       // nurImLaden kommt aus menu.json - dieselbe Liste, mit der der Server prueft.
       if (c.lieferung && Array.isArray(c.lieferung.nurImLaden) && c.lieferung.nurImLaden.length) {
@@ -3223,6 +3250,11 @@ async function processOrder() {
                     window.ONLINE_ZAHLUNG_AKTIV = false;
                     applyZahlungsarten();
                 }
+                // Dasselbe fuer PayPal: Eintrag weg, Auswahl zurueck auf die Vorauswahl
+                if (data.paypal === false) {
+                    window.PAYPAL_AKTIV = false;
+                    applyZahlungsarten();
+                }
                 if (btn) { btn.disabled = false; btn.textContent = '✅ Kostenpflichtig bestellen'; }
                 // Zeit abgelehnt (Laden inzwischen zu, Uhrzeit nicht mehr frei): Meldung am
                 // Feld; sonst wie bisher. Die Zeiten in jedem Fall neu laden.
@@ -3520,8 +3552,13 @@ window.addEventListener('load', async () => {
 
     const statusToken = params.get('t');
     if (orderId || orderNum) {
-        warenkorb = [];
-        renderWarenkorb();
+        // PayPal: den Warenkorb erst leeren, wenn feststeht, dass die Zahlung nicht
+        // abgelehnt oder abgelaufen ist (dann bleibt er für einen neuen Versuch).
+        const paypalRueckkehr = isPaypal && !!paypalToken;
+        if (!paypalRueckkehr) {
+            warenkorb = [];
+            renderWarenkorb();
+        }
         window.history.replaceState({}, document.title, window.location.pathname);
         // Bis die Zahlung verbucht ist, steht die Bestellung auf 'awaiting_payment'
         // und ist in der App noch gar nicht sichtbar. Das sagen wir auch so.
@@ -3544,16 +3581,29 @@ window.addEventListener('load', async () => {
         }
 
         // PayPal-Zahlung serverseitig einziehen/bestätigen
-        if (isPaypal && paypalToken) {
+        if (paypalRueckkehr) {
+            let antwort = null;
             try {
-                await fetch(`${BACKEND_URL}/api/paypal-capture`, {
+                const r = await fetch(`${BACKEND_URL}/api/paypal-capture`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ paypalOrderId: paypalToken })
                 });
+                antwort = await r.json().catch(() => null);
             } catch(e) {
                 console.warn('paypal-capture fehlgeschlagen:', e.message);
             }
+            // Abgelehnt oder abgelaufen: nichts abgebucht, Warenkorb bleibt, Hinweis zeigen
+            if (antwort && antwort.ok === false && (antwort.abgelehnt || antwort.abgelaufen)) {
+                document.getElementById('dankeModal').style.display = 'none';
+                resetOrderButton();
+                showStripeCancelBanner(antwort.message || 'Die PayPal-Zahlung wurde nicht abgeschlossen, es wurde nichts abgebucht.', 12000);
+                return;
+            }
+            // Sonst wie bei Stripe: Bestellung ist ausgelöst, Warenkorb leeren. Klemmt die
+            // Bestätigung, holt der Wachhund sie nach; die Seite fragt den Stand ab.
+            warenkorb = [];
+            renderWarenkorb();
         }
 
         // Erst nach verify/capture warten -- sonst zeigt der erste Tick
@@ -3567,7 +3617,9 @@ window.addEventListener('load', async () => {
     if (params.get('payment') === 'cancelled') {
         window.history.replaceState({}, document.title, window.location.pathname);
         resetOrderButton();
-        showStripeCancelBanner();
+        // Der Warenkorb ist noch da (gespeichert vor der Weiterleitung, korbLaden)
+        if (isPaypal) showStripeCancelBanner('PayPal-Zahlung abgebrochen – es wurde nichts abgebucht. Dein Warenkorb ist noch da: Du kannst es erneut versuchen oder eine andere Zahlungsart wählen.', 10000);
+        else showStripeCancelBanner();
         return;
     }
 
@@ -3591,7 +3643,8 @@ function resetOrderButton() {
     }
 }
 
-function showStripeCancelBanner() {
+// text/dauer: eigener Hinweis (PayPal); ohne Angabe wie bisher bei Stripe
+function showStripeCancelBanner(text, dauer) {
     const banner = document.createElement('div');
     banner.id = 'stripe-cancel-banner';
     banner.style.cssText = [
@@ -3601,10 +3654,15 @@ function showStripeCancelBanner() {
         'box-shadow:0 4px 16px rgba(0,0,0,0.12)', 'z-index:99999',
         'max-width:90vw', 'text-align:center', 'cursor:pointer'
     ].join(';');
-    banner.innerHTML = '⚠️ Zahlung abgebrochen – du kannst deine Bestellung anpassen oder eine andere Zahlungsart wählen. <strong>✕</strong>';
+    if (text) {
+        banner.textContent = '⚠️ ' + text + ' ';
+        const x = document.createElement('strong'); x.textContent = '✕'; banner.appendChild(x);
+    } else {
+        banner.innerHTML = '⚠️ Zahlung abgebrochen – du kannst deine Bestellung anpassen oder eine andere Zahlungsart wählen. <strong>✕</strong>';
+    }
     banner.onclick = () => banner.remove();
     document.body.appendChild(banner);
-    setTimeout(() => { if (banner.parentNode) banner.remove(); }, 7000);
+    setTimeout(() => { if (banner.parentNode) banner.remove(); }, dauer || 7000);
 }
 </script>
 
@@ -4660,7 +4718,7 @@ function confirmFamSelection() {
     </div>
     <nav class="odis-fuss-recht" aria-label="Rechtliches">
       <button type="button" onclick="openLegal('impressum')">Impressum</button>
-      <button type="button" onclick="openLegal('agb')">AGB &amp; Widerrufsbelehrung</button>
+      <button type="button" onclick="openLegal('agb')">AGB</button>
       <button type="button" onclick="openLegal('datenschutz')">Datenschutz</button>
       <button type="button" onclick="openLegal('allergene')">Allergene &amp; Zusatzstoffe</button>
     </nav>
@@ -4868,7 +4926,7 @@ LEGAL.datenschutz = {
 /* RECHT:AGB:START */
 // Erzeugt von recht/einbauen.py aus recht/erecht24-agb.html (eRecht24) und recht/agb-ziffer-12.html (eigene Ergänzung). Nicht von Hand ändern.
 LEGAL.agb = {
-  title: "AGB &amp; Widerrufsbelehrung",
+  title: "AGB",
   text:  "<h3 style='color:var(--odis-akzent);margin:0 0 10px;overflow-wrap:anywhere'>Allgemeine Geschäftsbedingungen<\/h3>"
        + "<p>für den Online-Shop unter der URL<\/p>"
        + "<p><a style='color:var(--odis-akzent);word-break:break-word' href='https://odis-ahaus.com' target='_blank' rel='noopener noreferrer'>https://odis-ahaus.com<\/a><\/p>"

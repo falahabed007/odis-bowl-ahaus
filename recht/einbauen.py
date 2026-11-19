@@ -46,7 +46,7 @@ QUELLEN = {
 MODAL_TITEL = {
     'impressum':   'Impressum',
     'datenschutz': 'Datenschutzerkl&auml;rung',
-    'agb':         'AGB &amp; Widerrufsbelehrung',
+    'agb':         'AGB',   # ohne "Widerrufsbelehrung": es gibt keine, Ziffer 12.5 schliesst das Widerrufsrecht aus (Abed, 19.11.2026)
 }
 
 # Ueberschriftenebenen: Export-Ebene -> Ausgabe. 'h3oben' = erste Ueberschrift im Modal,

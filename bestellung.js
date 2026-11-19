@@ -26,6 +26,8 @@ const GESPERRTE_FELDER = [
   'orderNum', 'status', 'paymentStatus', 'source', 'statusToken', 'userId',
   'prepTime', 'cancelReason', 'nachgeholt',
   'stripeSessionId', 'stripePaymentIntentId', 'paypalOrderId', 'paypalCaptureId',
+  // PayPal: nie bezahlt und abgeschlossen (setzt nur der Wachhund, paypal-direkt.js)
+  'zahlungAbgelaufen',
   // Stripe-Konto des Ladens und echte Stripe-Gebuehr setzt nur der Server
   // (create-stripe-checkout bzw. Nachlesen nach der Zahlung)
   'stripeAccount', 'stripeGebuehrCent',

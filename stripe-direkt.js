@@ -128,7 +128,9 @@ const istDirektBestellung = o => !!o && o.payment === 'stripe' && !!o.stripeAcco
 //  - Online (Stripe): Umsatz liegt vollstaendig auf dem eigenen Stripe-Konto des
 //    Ladens. Stripe zieht dort seine echte Gebuehr ab (nur gespeicherte Werte aus
 //    stripeGebuehrCent, nichts geschaetzt; fehlende zaehlen als "noch nicht bekannt").
-//  - alles andere (Bar, alte EC-Karte/PayPal-Eintraege): liegt in der Kasse.
+//  - PayPal: Umsatz liegt auf dem eigenen PayPal-Konto des Ladens. PayPal zieht dort
+//    seine Gebuehr ab; sie ist dem System nicht bekannt und steht nicht im Bericht.
+//  - alles andere (Bar, alte EC-Karte): liegt in der Kasse.
 // FlueVate behaelt von keiner Zahlung etwas ein. Grundgebuehr (nur Monatsbericht),
 // Domain und Servicegebuehr fuer ALLE Bestellungen werden per Rechnung und
 // SEPA-Lastschrift eingezogen.
@@ -144,13 +146,15 @@ function berichtAbrechnung(orders, mitFixkosten, fix) {
   const r2     = n => Math.round(n * 100) / 100;
   const summe  = (liste, f) => r2(liste.reduce((s, o) => s + f(o), 0));
   const online = orders.filter(o => o.payment === 'stripe');
-  const laden  = orders.filter(o => o.payment !== 'stripe');
+  const paypal = orders.filter(o => o.payment === 'paypal');
+  const laden  = orders.filter(o => o.payment !== 'stripe' && o.payment !== 'paypal');
   const bekannt = online.filter(o => Number.isInteger(o.stripeGebuehrCent) && o.stripeGebuehrCent >= 0);
   const a = {
-    n: orders.length, nOnline: online.length, nLaden: laden.length,
+    n: orders.length, nOnline: online.length, nLaden: laden.length, nPaypal: paypal.length,
     nOhneKonto: online.filter(o => !istDirektBestellung(o)).length,
     umsatzOnline: summe(online, o => o.total || 0),
     umsatzLaden:  summe(laden,  o => o.total || 0),
+    umsatzPaypal: summe(paypal, o => o.total || 0),
     // Ganze Cent addieren, erst am Ende in Euro: keine Rundungsreste
     stripeGeb: bekannt.reduce((s, o) => s + o.stripeGebuehrCent, 0) / 100,
     nStripeGebUnbekannt: online.length - bekannt.length,
@@ -158,7 +162,7 @@ function berichtAbrechnung(orders, mitFixkosten, fix) {
     grund:  mitFixkosten ? grund : 0,
     domain: mitFixkosten ? domain : 0,
   };
-  a.brutto           = r2(a.umsatzOnline + a.umsatzLaden);
+  a.brutto           = r2(a.umsatzOnline + a.umsatzLaden + a.umsatzPaypal);
   a.verbleibtStripe  = r2(a.umsatzOnline - a.stripeGeb);
   a.fluevate         = r2(a.grund + a.domain + a.svc);    // per Rechnung und SEPA-Lastschrift
   a.bleibt           = r2(a.brutto - a.stripeGeb - a.fluevate);
@@ -188,6 +192,11 @@ function stripeHinweis(a) {
     + (k ? ` Bei ${k === 1 ? 'einer Zahlung' : k + ' Zahlungen'} ist die Stripe-Gebühr noch nicht bekannt. Sie fehlt in den Summen.` : '');
 }
 
+function paypalHinweis() {
+  return 'PayPal-Zahlungen gehen vollständig auf Ihr eigenes PayPal-Konto. PayPal zieht seine Gebühren dort selbst ab; '
+    + 'sie sind in diesem Bericht nicht enthalten. FlueVate behält davon nichts ein.';
+}
+
 function fluevateHinweis(a) {
   return 'Die Gebühren von FlueVate werden nicht von Ihren Einnahmen abgezogen, sondern per Rechnung und SEPA-Lastschrift eingezogen.'
     + (a.grund ? '' : ' Die monatliche Grundgebühr steht im Monatsbericht.');
@@ -205,6 +214,10 @@ function abrechnungMailZeilen(a, fix) {
       + `<tr style="background:#f5f5f5"><td ${td}>Verbleibt auf Ihrem Stripe-Konto</td><td ${tdr}>${eur(a.verbleibtStripe)}</td></tr>`
       + hinweis(stripeHinweis(a))
       : '')
+    + (a.nPaypal
+      ? `<tr style="background:#f5f5f5"><td ${td}><b>PayPal (Ihr PayPal-Konto)</b> (${a.nPaypal} Bestellungen)</td><td ${tdr}><b>${eur(a.umsatzPaypal)}</b></td></tr>`
+      + hinweis(paypalHinweis())
+      : '')
     + `<tr><td ${td}>Barzahlung in Ihrer Kasse (${a.nLaden} Bestellungen)</td><td ${tdr}>${eur(a.umsatzLaden)}</td></tr>`
     + `<tr style="background:#f5f5f5"><td ${td}><b>Gebühren FlueVate</b> (${teile}), per Rechnung und SEPA-Lastschrift</td><td ${tdr}><b>${eur(a.fluevate)}</b></td></tr>`
     + hinweis(fluevateHinweis(a))
@@ -218,6 +231,7 @@ function abrechnungOwnerText(a) {
   return `<b>Per Rechnung und SEPA-Lastschrift einziehen:</b> ${eur(a.fluevate)} (${teile})`
     + (a.nOnline ? `<br><b>Eigenes Stripe-Konto des Ladens:</b> ${eur(a.umsatzOnline)} (${a.nOnline} Zahlungen), `
       + `Stripe-Gebühren ${eur(a.stripeGeb)}${a.nStripeGebUnbekannt ? `, bei ${a.nStripeGebUnbekannt} noch unbekannt` : ''}` : '')
+    + (a.nPaypal ? `<br><b>Eigenes PayPal-Konto des Ladens:</b> ${eur(a.umsatzPaypal)} (${a.nPaypal} Zahlungen), PayPal-Gebühren nicht bekannt` : '')
     + `<br><b>Bar in der Kasse:</b> ${eur(a.umsatzLaden)} (${a.nLaden} Bestellungen)`
     + (a.nOhneKonto ? `<br><b>Achtung:</b> ${a.nOhneKonto} Stripe-Bestellung(en) ohne gespeichertes Konto, bitte prüfen.` : '');
 }
@@ -236,6 +250,6 @@ function gleichSicher(a, b) {
 module.exports = {
   STRIPE_VARIABLEN, stripeKonfiguration, erstelleKontoPruefer, direktKontoWaehlen,
   ereignisFuerUns, gebuehrCentAusPaymentIntent, istDirektBestellung, berichtAbrechnung,
-  svcText, stripeGebText, stripeGebWert, stripeHinweis, fluevateHinweis,
+  svcText, stripeGebText, stripeGebWert, stripeHinweis, fluevateHinweis, paypalHinweis,
   abrechnungMailZeilen, abrechnungOwnerText, gleichSicher,
 };

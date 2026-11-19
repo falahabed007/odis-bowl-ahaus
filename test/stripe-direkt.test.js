@@ -358,3 +358,23 @@ test('gleichSicher', () => {
   assert.equal(sd.gleichSicher(undefined, 'abc'), false);
   assert.equal(sd.gleichSicher('äöü', 'äöü'), true);
 });
+
+// PayPal liegt auf dem PayPal-Konto des Ladens, nicht in der Kasse (19.11.2026)
+test('berichtAbrechnung: PayPal zählt nicht als Barzahlung in der Kasse', () => {
+  const { berichtAbrechnung, abrechnungMailZeilen } = require('../stripe-direkt');
+  const fix = { sv: 0.99, grund: 150, domain: 0 };
+  const a = berichtAbrechnung([
+    { payment: 'bar', total: 10, serviceFee: 0.99 },
+    { payment: 'paypal', total: 20.5, serviceFee: 0.99 },
+    { payment: 'paypal', total: 9.5, serviceFee: 0.99 },
+  ], false, fix);
+  assert.equal(a.nLaden, 1); assert.equal(a.umsatzLaden, 10);
+  assert.equal(a.nPaypal, 2); assert.equal(a.umsatzPaypal, 30);
+  assert.equal(a.brutto, 40);
+  const html = abrechnungMailZeilen(a, fix);
+  assert.match(html, /PayPal \(Ihr PayPal-Konto\)<\/b> \(2 Bestellungen\)/);
+  assert.match(html, /Barzahlung in Ihrer Kasse \(1 Bestellungen\)/);
+  const ohne = berichtAbrechnung([{ payment: 'bar', total: 10, serviceFee: 0.99 }], false, fix);
+  assert.equal(ohne.nPaypal, 0);
+  assert.doesNotMatch(abrechnungMailZeilen(ohne, fix), /PayPal/);
+});
