@@ -64,6 +64,11 @@ function getResend() {
 // getippt, waehrend FRONTEND_URL zwar in .env und render.yaml stand, aber
 // nie gelesen wurde - ein Umzug haette funf Stellen stumm veralten lassen.
 const FRONTEND = process.env.FRONTEND_URL || 'https://odis-ahaus.com';
+// Oeffentliche Adresse DIESES Backends (dieselbe wie window.FLUEVATE_BACKEND in
+// config.js). Daraus baut der Server die PayPal-Webhook-Adresse
+// <API_BASIS>/api/paypal-webhook (paypal-direkt.js: webhookAdresse). Bewusst nie aus
+// Anfrage-Kopfzeilen abgeleitet. Ueberschreibbar mit PUBLIC_API_URL.
+const API_BASIS = (process.env.PUBLIC_API_URL || '').trim() || 'https://api.odis-ahaus.com';
 
 // ─── CORS ────────────────────────────────────────────────────────
 const allowedOrigins = [
@@ -238,7 +243,13 @@ const settingsSchema = new mongoose.Schema({
   mode:           { type: String, default: 'online', enum: ['online','geschlossen','neutral'] },
   manualOverride: { type: Boolean, default: false },
   // Rückwärtskompatibilität
-  isOpen:         { type: Boolean, default: true }
+  isOpen:         { type: Boolean, default: true },
+  // Nur im eigenen Eintrag _id 'paypal' (nie in 'restaurant'): der Webhook, den der
+  // Server in der PayPal-App sichergestellt hat (paypal-direkt.js, erstelleWebhookVerwalter).
+  // app ist eine Kennung aus der Client-ID (Hash), nicht die Client-ID selbst.
+  paypalWebhook:  { type: new mongoose.Schema({
+    id: String, url: String, app: String, ereignisse: [String], am: Date,
+  }, { _id: false }), default: undefined },
 });
 const Settings = mongoose.model('Settings', settingsSchema);
 
@@ -486,8 +497,10 @@ app.get('/api/health', (req, res) => {
 // eingerichtet und das Konto des Ladens freigeschaltet ist; sonst bietet sie
 // nur bar an. Die Pruefung wartet hoechstens 4 s und wirft nie (Zwischenspeicher
 // 5 Minuten), die Route antwortet also immer, im Zweifel mit false.
-// paypal: ob PayPal eingerichtet ist (drei Variablen, PAYPAL_ENV=live, Probe-Anmeldung
-// gelingt), ebenso hoechstens 4 s und zwischengespeichert. Beide Proben laufen parallel.
+// paypal: ob PayPal eingerichtet ist (Client-ID und Secret, PAYPAL_ENV=live, Webhook
+// bekannt, Probe-Anmeldung gelingt), ebenso hoechstens 4 s und zwischengespeichert.
+// Das Sicherstellen des Webhooks laeuft nie in dieser Anfrage, nur im Hintergrund.
+// Beide Proben laufen parallel.
 app.get('/api/config', async (req, res) => {
   let onlineZahlung = false, paypal = false;
   await Promise.all([
@@ -674,23 +687,58 @@ async function stripeBereit() {
 }
 
 // ── PayPal: nur direkt auf das PayPal-Konto des Ladens ───────────
-// Eingerichtet erst, wenn PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_WEBHOOK_ID
-// gesetzt sind, PAYPAL_ENV genau `live` ist UND die Probe-Anmeldung (Token holen)
-// gelingt. Derselbe Zwischenspeicher wie fuer das Stripe-Konto: Erfolg 5 Minuten,
+// Je Laden nur ZWEI Werte: PAYPAL_CLIENT_ID und PAYPAL_CLIENT_SECRET der Live-App.
+// Scharf geschaltet wird bewusst mit PAYPAL_ENV=live. Eingerichtet ist PayPal erst,
+// wenn zusaetzlich die Probe-Anmeldung (Token holen) gelingt UND ein Webhook bekannt
+// ist. Den stellt der Server selbst in der PayPal-App sicher (paypalWebhook unten) und
+// merkt sich die ID in Settings('paypal'); PAYPAL_WEBHOOK_ID (von Hand) hat Vorrang.
+// Probe (PaypalDirekt.erstelleProbe, wie der Pruefer fuers Stripe-Konto): Erfolg 5 Minuten,
 // Fehler 1 Minute, hoechstens 4 s Wartezeit, wirft nie.
-const paypalPruefer = stripeDirekt.erstelleKontoPruefer({
-  abrufen: async () => { await paypalClient().token(); return true; },
-  melden:  e => console.warn('PayPal-Probe-Anmeldung fehlgeschlagen, PayPal aus:', e.message),
+// Zustand fuer den Betreiber: GET /api/admin/paypal.
+let paypalProbe = null;   // { ok, grund } der letzten Probe-Anmeldung, nur fuer die Statusauskunft
+const paypalPruefer = PaypalDirekt.erstelleProbe({
+  abrufen: async () => { await paypalClient().token(); paypalProbe = { ok: true }; return true; },
+  melden:  e => { paypalProbe = { ok: false, grund: e.message };
+                  console.warn('PayPal-Probe-Anmeldung fehlgeschlagen, PayPal aus:', e.message); },
+});
+const PAYPAL_WEBHOOK_ADRESSE = PaypalDirekt.webhookAdresse(API_BASIS);   // { url } oder { fehler }
+const paypalWebhook = PaypalDirekt.erstelleWebhookVerwalter({
+  env: process.env, client: paypalClient(), apiBasis: API_BASIS,
+  // Eigener Eintrag _id 'paypal' in Settings, getrennt vom Laden-Zustand 'restaurant'
+  ablage: {
+    async lesen() { const s = await Settings.findById('paypal').lean(); return (s && s.paypalWebhook) || null; },
+    async schreiben(w) {
+      await Settings.updateOne({ _id: 'paypal' }, { $set: { paypalWebhook: w } }, { upsert: true, setDefaultsOnInsert: false });
+    },
+    async loeschen() { await Settings.updateOne({ _id: 'paypal' }, { $unset: { paypalWebhook: 1 } }); },
+  },
 });
 async function paypalBereit() {
-  return PaypalDirekt.paypalBereit({ env: process.env, istBereit: paypalPruefer });
+  paypalWebhook.anstossen();   // nur wenn faellig, im Hintergrund - die Anfrage wartet nie darauf
+  return PaypalDirekt.paypalBereit({ env: process.env, istBereit: paypalPruefer, webhookId: paypalWebhook.id() });
+}
+// Woran es liegt, wenn PayPal aus ist (fuer die Logzeile beim Start)
+function paypalAusGrund() {
+  const w = paypalWebhook.zustand();
+  if (!w.vorhanden) return `kein Webhook bekannt (${w.fehler || 'noch nicht sichergestellt'})`;
+  if (paypalProbe && !paypalProbe.ok) return `Anmeldung bei PayPal scheitert (${paypalProbe.grund})`;
+  return 'Probe-Anmeldung noch offen';
 }
 {
   const pk = PaypalDirekt.paypalKonfiguration(process.env);
-  if (pk.vollstaendig) {
-    paypalBereit().then(ok => console.log(ok
-      ? '💙 PayPal (live) eingerichtet: PayPal wird angeboten'
-      : '⚠️  PayPal-Variablen gesetzt, aber die Anmeldung bei PayPal scheitert: PayPal bleibt aus'));
+  if (pk.zugang) {
+    console.log(`💙 PayPal: Schluessel gesetzt, PAYPAL_ENV=live. Webhook ${pk.webhookVorgabe
+      ? 'von Hand (PAYPAL_WEBHOOK_ID)'
+      : 'wird sichergestellt: ' + (PAYPAL_WEBHOOK_ADRESSE.url || PAYPAL_WEBHOOK_ADRESSE.fehler)}`);
+    paypalWebhook.sicherstellen()
+      .then(() => paypalBereit())
+      .then(ok => console.log(ok
+        ? '💙 PayPal (live) eingerichtet: PayPal wird angeboten'
+        : `⚠️  PayPal bleibt aus: ${paypalAusGrund()}. Zustand: GET /api/admin/paypal`))
+      .catch(e => console.error('PayPal-Start:', e.message));
+  } else if (pk.schluessel && !pk.live) {
+    console.warn('⚠️  PayPal-Schluessel eingetragen, aber PAYPAL_ENV ist nicht "live": PayPal bleibt aus '
+      + '(bewusster Schalter, es geht keine Anfrage an PayPal).');
   } else if (pk.teilweise) {
     console.warn(`⚠️  PayPal nur teilweise eingerichtet, es fehlt: ${pk.fehlend.join(', ')}. PayPal bleibt aus.`);
   } else {
@@ -1102,17 +1150,46 @@ app.post('/api/paypal-capture', async (req, res) => {
 });
 
 // ── PayPal Webhook (Signatur per Verify-API → nutzt geparstes JSON) ─
-// Abonnieren in der PayPal-App des Ladens: CHECKOUT.ORDER.APPROVED, PAYMENT.CAPTURE.COMPLETED.
-// Ohne PAYPAL_WEBHOOK_ID oder ohne gueltige Signatur wird nichts eingebucht.
+// Den Webhook (CHECKOUT.ORDER.APPROVED, PAYMENT.CAPTURE.COMPLETED) legt der Server selbst
+// in der PayPal-App an (paypalWebhook). Ohne bekannten Webhook oder ohne gueltige
+// Signatur wird nichts eingebucht. Scheitert die Signaturpruefung, sieht der Server
+// (hoechstens alle 10 Minuten) nach, ob es den gemerkten Webhook noch gibt.
 app.post('/api/paypal-webhook', async (req, res) => {
   try {
+    paypalWebhook.anstossen();   // noch keiner bekannt: im Hintergrund sicherstellen
     const r = await PaypalDirekt.webhookVerarbeiten({
-      env: process.env, headers: req.headers, event: req.body,
+      env: process.env, webhookId: paypalWebhook.id(), beiSignaturFehler: paypalWebhook.verdachtMelden,
+      headers: req.headers, event: req.body,
       client: paypalClient(), finden: paypalBestellungFinden, speicher: paypalSpeicher() });
     res.status(r.status).json(r.json);
   } catch(e) {
     console.error('paypal-webhook Fehler:', e.message);
     res.status(500).json({ message: 'error' });
+  }
+});
+
+// ── PayPal-Zustand fuer den Betreiber (Admin) ────────────────────
+// GET /api/admin/paypal  (gleiche Anmeldung wie die anderen Admin-Routen)
+// Klartext ohne Geheimnisse: Schluessel gesetzt ja/nein, Modus live/aus, Probe-Anmeldung,
+// Webhook vorhanden samt Adresse, fuer Gaeste sichtbar ja/nein, naechster Schritt.
+// Stoesst das Sicherstellen des Webhooks an (wartet hoechstens 10 s); ?erneut=1 uebergeht
+// die Pause nach einem Fehlschlag und sieht in der PayPal-App nach (hoechstens alle 30 s).
+app.get('/api/admin/paypal', auth, async (req, res) => {
+  try {
+    const pk = PaypalDirekt.paypalKonfiguration(process.env);
+    let timer;
+    await Promise.race([
+      req.query.erneut === '1' ? paypalWebhook.sicherstellen({ erzwingen: true }) : paypalWebhook.anstossen(),
+      new Promise(r => { timer = setTimeout(r, 10000); }),
+    ]).finally(() => clearTimeout(timer));
+    if (pk.zugang) await paypalPruefer(pk.clientId);   // zwischengespeichert, hoechstens 4 s
+    const sichtbar = await paypalBereit();
+    res.set('Cache-Control', 'no-store');
+    res.json(PaypalDirekt.paypalStatus({ env: process.env, probe: pk.zugang ? paypalProbe : null,
+      webhook: paypalWebhook.zustand(), sichtbar }));
+  } catch (e) {
+    console.error('PayPal-Status:', e.message);
+    res.status(500).json({ message: 'PayPal-Zustand nicht lesbar' });
   }
 });
 
@@ -1766,6 +1843,11 @@ cron.schedule('*/5 * * * *', async () => {
   } catch (e) { console.error('PayPal-Wachhund Fehler:', e.message); }
 });
 
+// ── PayPal-Webhook sicherstellen (alle 5 Minuten, nur wenn faellig) ──
+// Holt einen gescheiterten Versuch nach Ablauf der Pause nach und bestaetigt den
+// gemerkten Webhook alle 12 Stunden. Ohne Schluessel oder ohne PAYPAL_ENV=live: nichts.
+cron.schedule('*/5 * * * *', () => { paypalWebhook.anstossen(); });
+
 // ── Echte Stripe-Gebuehr nachholen ──────────────────────────────
 // Direkt nach der Zahlung kennt Stripe die Gebuehr manchmal noch nicht, oder die
 // Abfrage scheitert. Alle 30 Minuten werden bis zu 20 bezahlte Bestellungen der
@@ -1809,9 +1891,9 @@ async function wachhundMelden(bestellungen, { anbieter = 'Stripe' } = {}) {
       <table style="font-size:14px;border-collapse:collapse">${zeilen}</table>
       <p style="margin:16px 0 0;font-size:13px;color:#666">${anbieter === 'PayPal'
         ? `Der Gast wartet entsprechend laenger. Weder die Rueckkehr des Gastes noch der PayPal-Webhook
-        hat die Zahlung gemeldet. Pruefen: Webhook-Adresse https://api.odis-ahaus.com/api/paypal-webhook
-        in der PayPal-App des Ladens, abonnierte Ereignisse (CHECKOUT.ORDER.APPROVED, PAYMENT.CAPTURE.COMPLETED)
-        und PAYPAL_WEBHOOK_ID in Coolify.`
+        hat die Zahlung gemeldet. Pruefen: PayPal-Zustand unter GET /api/admin/paypal (Webhook vorhanden?),
+        Webhook-Adresse ${PAYPAL_WEBHOOK_ADRESSE.url || API_BASIS + '/api/paypal-webhook'} in der PayPal-App des Ladens
+        mit den Ereignissen CHECKOUT.ORDER.APPROVED und PAYMENT.CAPTURE.COMPLETED.`
         : `Der Gast wartet entsprechend laenger. Ursache ist fast immer der Stripe-Webhook:
         falsche Adresse, abgeschalteter Endpunkt oder ein Signaturgeheimnis, das mit
         <code>we_</code> statt <code>whsec_</code> beginnt. Pruefen mit

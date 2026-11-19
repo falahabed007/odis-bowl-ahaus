@@ -11,14 +11,21 @@ STRIPE_DIREKT_KONTO=acct_...               # eigenes Stripe-Konto des Ladens (mi
 STRIPE_CONNECT_WEBHOOK_SECRET=whsec_...    # Signaturgeheimnis des Connect-Webhook-Endpunkts ("Ereignisse verbundener Konten"), URL /api/stripe-webhook
 
 # PayPal: direkt auf das eigene PayPal-Geschaeftskonto des Ladens (REST-App, Live).
-# PayPal erscheint auf der Seite erst, wenn ALLE gesetzt sind, PAYPAL_ENV genau "live"
-# ist und die Anmeldung bei PayPal gelingt. Sandbox-Daten schalten PayPal nicht ein.
-# Webhook der App: https://api.odis-ahaus.com/api/paypal-webhook mit den Ereignissen
-# CHECKOUT.ORDER.APPROVED und PAYMENT.CAPTURE.COMPLETED; dessen ID kommt in PAYPAL_WEBHOOK_ID.
+# Pflicht sind nur ZWEI Werte aus der Live-App des Ladens: Client-ID und Secret.
+# Scharf geschaltet wird bewusst mit PAYPAL_ENV=live - ohne diesen Schalter bleibt
+# PayPal aus und es geht keine einzige Anfrage an PayPal, auch wenn die Schluessel
+# schon eingetragen sind. Sandbox-Daten schalten PayPal nie ein.
+# Den Webhook (<API-Basis>/api/paypal-webhook, Ereignisse CHECKOUT.ORDER.APPROVED und
+# PAYMENT.CAPTURE.COMPLETED) legt der Server selbst in der PayPal-App an bzw. findet
+# ihn dort und merkt sich die ID in der Datenbank. PayPal erscheint auf der Seite erst,
+# wenn die Anmeldung gelingt UND der Webhook steht.
+# Zustand pruefen: GET /api/admin/paypal (Admin-Anmeldung), mit ?erneut=1 sofort neu versuchen.
 PAYPAL_CLIENT_ID=
 PAYPAL_CLIENT_SECRET=
-PAYPAL_WEBHOOK_ID=
-PAYPAL_ENV=live
+PAYPAL_ENV=                                # erst zum Scharfschalten: live
+# Optional, nur in Ausnahmefaellen:
+# PAYPAL_WEBHOOK_ID=                       # Webhook von Hand angelegt: dessen ID, hat Vorrang (dann verwaltet der Server nichts)
+# PUBLIC_API_URL=https://api.odis-ahaus.com   # oeffentliche Adresse dieses Backends, Vorgabe im Code (wie config.js); nur https
 
 RESEND_API_KEY=re_...
 EMAIL_FROM=Odi’s Bowl Ahaus <bestellungen@odis-ahaus.com>

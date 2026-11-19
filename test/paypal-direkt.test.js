@@ -1,9 +1,11 @@
-// Tests fuer paypal-direkt.js. Laufen ohne Datenbank, ohne .env und ohne PayPal:
+// Tests fuer paypal-direkt.js. Laufen ohne Datenbank, ohne .env und ohne PayPal
+// (unveraendert in andere Standorte kopierbar, brauchen nur ../paypal-direkt):
 // PayPal ist eine vorgetaeuschte fetch-Funktion, die Datenbank ein Speicher im Arbeitsspeicher.
 const test   = require('node:test');
 const assert = require('node:assert/strict');
 const pp     = require('../paypal-direkt');
-const { erstelleKontoPruefer } = require('../stripe-direkt');
+// Eigenstaendig: kein stripe-direkt.js noetig (das Modul passt so auch in andere Standorte)
+const erstelleKontoPruefer = pp.erstelleProbe;
 
 const LIVE = { PAYPAL_CLIENT_ID: 'cid', PAYPAL_CLIENT_SECRET: 'geheim', PAYPAL_WEBHOOK_ID: 'WH-1', PAYPAL_ENV: 'live' };
 const stumm = { log() {}, warn() {}, error() {} };
@@ -11,10 +13,14 @@ const MIN = 60 * 1000;
 
 // ─── Vorgetaeuschtes PayPal ──────────────────────────────────────
 // orders: id -> { status, wert, waehrung, nr, einzugStatus }
-function fakePaypal({ tokenOk = true, verify = 'SUCCESS', verifyWirft = false, verzoegerung = 0 } = {}) {
+// webhooks: id -> { id, url, event_types }; anlegenScheitert: Anzahl POSTs, die mit 500 scheitern;
+// anderer: Webhook, den "ein anderer Prozess" kurz vor unserem POST anlegt (-> WEBHOOK_URL_ALREADY_EXISTS)
+function fakePaypal({ tokenOk = true, verify = 'SUCCESS', verifyWirft = false, verzoegerung = 0,
+                      anlegenScheitert = 0, webhookStatus = 0, anderer = null, doppeltErlaubt = false } = {}) {
   const orders = new Map();
+  const webhooks = new Map();
   const aufrufe = [];
-  let einzuege = 0, naechste = 1;
+  let einzuege = 0, naechste = 1, naechsterWh = 1;
   const antwort = (status, daten) => ({ ok: status < 300, status, text: async () => JSON.stringify(daten) });
   const ppOrder = (id, o) => ({
     id, status: o.status,
@@ -34,6 +40,28 @@ function fakePaypal({ tokenOk = true, verify = 'SUCCESS', verifyWirft = false, v
     if (u.pathname === '/v1/notifications/verify-webhook-signature') {
       if (verifyWirft) return antwort(500, { name: 'INTERNAL_SERVICE_ERROR', message: 'kaputt' });
       return antwort(200, { verification_status: verify });
+    }
+    if (u.pathname.startsWith('/v1/notifications/webhooks')) {
+      if (webhookStatus) return antwort(webhookStatus, { name: 'NOT_AUTHORIZED', message: 'Authorization failed' });
+      const wid = decodeURIComponent(u.pathname.split('/')[4] || '');
+      if (!wid && opt.method === 'GET') return antwort(200, { webhooks: [...webhooks.values()].map(w => structuredClone(w)) });
+      if (!wid && opt.method === 'POST') {
+        const b = JSON.parse(opt.body);
+        if (anlegenScheitert > 0) { anlegenScheitert--; return antwort(500, { name: 'INTERNAL_SERVICE_ERROR', message: 'gerade nicht' }); }
+        if (anderer) { webhooks.set(anderer.id, anderer); anderer = null; }
+        if (!doppeltErlaubt && [...webhooks.values()].some(w => w.url === b.url)) return antwort(400, { name: 'WEBHOOK_URL_ALREADY_EXISTS', message: 'Webhook URL already exists' });
+        const id = 'WH' + String(naechsterWh++).padStart(8, '0') + 'X';
+        webhooks.set(id, { id, url: b.url, event_types: b.event_types });
+        return antwort(201, structuredClone(webhooks.get(id)));
+      }
+      const w = webhooks.get(wid);
+      if (!w) return antwort(404, { name: 'INVALID_RESOURCE_ID', message: 'Webhook not found' });
+      if (opt.method === 'PATCH') {
+        const p = JSON.parse(opt.body);
+        if (p[0].op === 'replace' && p[0].path === '/event_types') w.event_types = p[0].value;
+        return antwort(200, structuredClone(w));
+      }
+      if (opt.method === 'DELETE') { webhooks.delete(wid); return { ok: true, status: 204, text: async () => '' }; }
     }
     if (u.pathname === '/v2/checkout/orders' && opt.method === 'POST') {
       const b = JSON.parse(opt.body);
@@ -57,7 +85,7 @@ function fakePaypal({ tokenOk = true, verify = 'SUCCESS', verifyWirft = false, v
     }
     return antwort(404, { name: 'NOT_FOUND' });
   }
-  return { fetch, orders, aufrufe, get einzuege() { return einzuege; },
+  return { fetch, orders, webhooks, aufrufe, get einzuege() { return einzuege; },
     anlegen(id, felder) { orders.set(id, { status: 'APPROVED', betrag: '23.49', nr: 1001, ...felder }); } };
 }
 
@@ -97,7 +125,7 @@ const ereignis = (typ, ppId) => typ.startsWith('CHECKOUT.ORDER.')
 
 // ─── Schalter ────────────────────────────────────────────────────
 
-test('Schalter: nur alle drei Variablen UND PAYPAL_ENV genau live', () => {
+test('Schalter: zwei Werte UND PAYPAL_ENV genau live; PAYPAL_WEBHOOK_ID ist nur optionale Vorgabe', () => {
   const werte = { PAYPAL_CLIENT_ID: [undefined, '', 'cid'], PAYPAL_CLIENT_SECRET: [undefined, '  ', 'geheim'],
     PAYPAL_WEBHOOK_ID: [undefined, 'WH-1'], PAYPAL_ENV: [undefined, '', 'sandbox', 'LIVE', 'live ', 'production', 'live'] };
   let anzahl = 0, ein = 0;
@@ -109,16 +137,20 @@ test('Schalter: nur alle drei Variablen UND PAYPAL_ENV genau live', () => {
       if (c !== undefined) env.PAYPAL_WEBHOOK_ID = c;
       if (d !== undefined) env.PAYPAL_ENV = d;
       const k = pp.paypalKonfiguration(env);
-      const soll = a === 'cid' && b === 'geheim' && c === 'WH-1' && d === 'live';
+      const soll = a === 'cid' && b === 'geheim' && d === 'live';
       assert.equal(k.vollstaendig, soll, JSON.stringify(env));
-      assert.equal(k.zugang, a === 'cid' && b === 'geheim' && d === 'live', JSON.stringify(env));
+      assert.equal(k.zugang, soll, JSON.stringify(env));
+      assert.equal(k.schluessel, a === 'cid' && b === 'geheim', JSON.stringify(env));
+      assert.equal(k.webhookVorgabe, c === 'WH-1' ? 'WH-1' : null);
       if (!soll) assert.ok(k.fehlend.length > 0);
+      else assert.deepEqual(k.fehlend, []);
       anzahl++; if (soll) ein++;
     }
   assert.equal(anzahl, 3 * 3 * 2 * 7);
-  assert.equal(ein, 1);
+  assert.equal(ein, 2);   // mit und ohne PAYPAL_WEBHOOK_ID
   assert.equal(pp.paypalKonfiguration({}).teilweise, false);
   assert.equal(pp.paypalKonfiguration({ PAYPAL_ENV: 'sandbox' }).teilweise, true);
+  assert.equal(pp.paypalKonfiguration({ PAYPAL_CLIENT_ID: 'cid', PAYPAL_CLIENT_SECRET: 'g' }).teilweise, true);
   assert.equal(JSON.stringify(pp.paypalKonfiguration(LIVE)).includes('geheim'), false, 'kein Geheimwert in der Ausgabe');
 });
 
@@ -504,4 +536,370 @@ test('Webhook-Ereignisse fuer die PayPal-App', () => {
   assert.deepEqual(pp.WEBHOOK_EREIGNISSE, ['CHECKOUT.ORDER.APPROVED', 'PAYMENT.CAPTURE.COMPLETED']);
   assert.equal(pp.ppOrderIdAusEreignis(ereignis('CHECKOUT.ORDER.APPROVED', 'PPX0000001')), 'PPX0000001');
   assert.equal(pp.ppOrderIdAusEreignis(ereignis('PAYMENT.CAPTURE.COMPLETED', 'PPX0000001')), 'PPX0000001');
+});
+
+// ─── Webhook selbst sicherstellen (zwei Werte genuegen) ──────────
+
+const ZWEI   = { PAYPAL_CLIENT_ID: 'cid-laden', PAYPAL_CLIENT_SECRET: 'geheim-laden', PAYPAL_ENV: 'live' };
+const BASIS  = 'https://api.odis-ahaus.com';
+const WH_URL = 'https://api.odis-ahaus.com/api/paypal-webhook';
+const wh = (id, url, namen) => ({ id, url, event_types: namen.map(name => ({ name })) });
+const namenVon = w => w.event_types.map(e => e.name).sort();
+const anlegeAufrufe = f => f.aufrufe.filter(a => a.method === 'POST' && a.url === 'https://api-m.paypal.com/v1/notifications/webhooks');
+
+function fakeAblage(start = null, { lesenWirft = false, schreibenWirft = false } = {}) {
+  let eintrag = start;
+  const a = {
+    gelesen: 0, geschrieben: 0,
+    get eintrag() { return eintrag; },
+    async lesen() { a.gelesen++; if (lesenWirft) throw new Error('DB weg'); return eintrag ? structuredClone(eintrag) : null; },
+    async schreiben(w) { if (schreibenWirft) throw new Error('DB weg'); a.geschrieben++; eintrag = structuredClone(w); },
+    async loeschen() { eintrag = null; },
+  };
+  return a;
+}
+
+function verwalter(f, { env = ZWEI, ablage = fakeAblage(), apiBasis = BASIS, uhr } = {}) {
+  const m = [];
+  const melden = { log: t => m.push(['log', t]), warn: t => m.push(['warn', t]), error: t => m.push(['error', t]) };
+  const v = pp.erstelleWebhookVerwalter({ env, client: pp.erstelleClient({ env, fetch: f.fetch }), ablage, apiBasis, melden,
+    ...(uhr ? { uhr } : {}) });
+  return { v, ablage, m, fehlerText: () => m.filter(x => x[0] === 'error').map(x => x[1]).join('\n') };
+}
+
+const immerBereit = () => erstelleKontoPruefer({ abrufen: async () => true });
+
+test('Webhook vorhanden -> dessen ID uebernommen, nichts angelegt, gemerkt (ohne Client-ID)', async () => {
+  const f = fakePaypal();
+  f.webhooks.set('WHFREMD0001', wh('WHFREMD0001', 'https://anderer-laden.de/api/paypal-webhook', ['*']));
+  f.webhooks.set('WHALT00001', wh('WHALT00001', WH_URL, pp.WEBHOOK_EREIGNISSE));
+  const { v, ablage } = verwalter(f);
+  assert.equal(v.id(), null);
+  assert.equal(await pp.paypalBereit({ env: ZWEI, istBereit: immerBereit(), webhookId: v.id() }), false, 'ohne Webhook aus');
+  assert.equal(await v.sicherstellen(), 'WHALT00001');
+  assert.equal(v.id(), 'WHALT00001');
+  assert.equal(anlegeAufrufe(f).length, 0);
+  assert.equal(f.aufrufe.some(a => a.method === 'PATCH'), false);
+  assert.equal(f.webhooks.size, 2);
+  assert.equal(ablage.eintrag.id, 'WHALT00001');
+  assert.equal(ablage.eintrag.url, WH_URL);
+  assert.equal(JSON.stringify(ablage.eintrag).includes('cid-laden'), false, 'die Client-ID wird nicht gespeichert');
+  assert.equal(await pp.paypalBereit({ env: ZWEI, istBereit: immerBereit(), webhookId: v.id() }), true);
+  assert.match(v.zustand().quelle, /gefunden/);
+  // Alles nur gegen Live, nie Sandbox
+  assert.ok(f.aufrufe.every(a => a.url.startsWith('https://api-m.paypal.com/')));
+});
+
+test('Webhook vorhanden, Ereignis fehlt -> ergaenzt, vorhandene Ereignisse bleiben', async () => {
+  const f = fakePaypal();
+  f.webhooks.set('WHALT00001', wh('WHALT00001', 'https://API.odis-ahaus.com/api/paypal-webhook/', ['CHECKOUT.ORDER.APPROVED', 'PAYMENT.CAPTURE.REFUNDED']));
+  const { v, ablage } = verwalter(f);
+  assert.equal(await v.sicherstellen(), 'WHALT00001');
+  const patch = f.aufrufe.filter(a => a.method === 'PATCH');
+  assert.equal(patch.length, 1);
+  assert.equal(patch[0].url, 'https://api-m.paypal.com/v1/notifications/webhooks/WHALT00001');
+  assert.deepEqual(namenVon(f.webhooks.get('WHALT00001')), ['CHECKOUT.ORDER.APPROVED', 'PAYMENT.CAPTURE.COMPLETED', 'PAYMENT.CAPTURE.REFUNDED']);
+  assert.equal(anlegeAufrufe(f).length, 0);
+  assert.match(v.zustand().quelle, /ergaenzt/);
+  assert.ok(ablage.eintrag.ereignisse.includes('PAYMENT.CAPTURE.COMPLETED'));
+  // Alle Ereignisse ('*'): nichts zu ergaenzen
+  const g = fakePaypal();
+  g.webhooks.set('WHSTERN001', wh('WHSTERN001', WH_URL, ['*']));
+  assert.equal(await verwalter(g).v.sicherstellen(), 'WHSTERN001');
+  assert.equal(g.aufrufe.filter(a => a.method === 'PATCH').length, 0);
+});
+
+test('Kein Webhook vorhanden -> erst auflisten, dann angelegt (Adresse und Ereignisse), danach nicht erneut', async () => {
+  const f = fakePaypal();
+  const { v, ablage, m } = verwalter(f);
+  const id = await v.sicherstellen();
+  assert.match(id, /^WH/);
+  const wAufrufe = f.aufrufe.filter(a => a.url.includes('/notifications/webhooks'));
+  assert.equal(wAufrufe[0].method, 'GET', 'vor dem Anlegen wird aufgelistet');
+  assert.deepEqual(JSON.parse(anlegeAufrufe(f)[0].body),
+    { url: WH_URL, event_types: [{ name: 'CHECKOUT.ORDER.APPROVED' }, { name: 'PAYMENT.CAPTURE.COMPLETED' }] });
+  assert.equal(f.webhooks.size, 1);
+  assert.equal(ablage.eintrag.id, id);
+  assert.match(m.map(x => x[1]).join('\n'), /bereit \(vom Server angelegt\)/);
+  const vorher = f.aufrufe.length;
+  assert.equal(await v.sicherstellen(), id);
+  assert.equal(await v.anstossen(), id);
+  assert.equal(f.aufrufe.length, vorher, 'bekannt und frisch: keine Anfrage');
+  assert.equal(anlegeAufrufe(f).length, 1);
+});
+
+test('Anlegen scheitert -> PayPal bleibt aus, klare Logzeile, Pause waechst, spaeterer Versuch gelingt', async () => {
+  let jetzt = 1e12;
+  const f = fakePaypal({ anlegenScheitert: 2 });
+  const { v, fehlerText } = verwalter(f, { uhr: () => jetzt });
+  assert.equal(await v.sicherstellen(), null);
+  assert.equal(v.id(), null);
+  assert.equal(await pp.paypalBereit({ env: ZWEI, istBereit: immerBereit(), webhookId: v.id() }), false);
+  assert.match(fehlerText(), /Webhook nicht sichergestellt: .*gerade nicht.*PayPal bleibt aus.*Naechster Versuch in 1 Min/);
+  assert.equal(v.zustand().vorhanden, false);
+  assert.ok(v.zustand().naechsterVersuch);
+  assert.equal(f.webhooks.size, 0);
+
+  // Innerhalb der Pause: keine einzige Anfrage, auch nicht ueber anstossen oder sicherstellen
+  let n = f.aufrufe.length;
+  jetzt += 30 * 1000;
+  assert.equal(await v.anstossen(), null);
+  assert.equal(await v.sicherstellen(), null);
+  assert.equal(f.aufrufe.length, n);
+
+  // Nach der Pause: zweiter Fehlschlag, jetzt 2 Minuten Pause
+  jetzt += 31 * 1000;
+  assert.equal(await v.anstossen(), null);
+  assert.match(fehlerText(), /Naechster Versuch in 2 Min/);
+  n = f.aufrufe.length;
+  jetzt += 61 * 1000;
+  await v.anstossen();
+  assert.equal(f.aufrufe.length, n, 'Pause von 2 Minuten eingehalten');
+
+  jetzt += 60 * 1000;
+  const id = await v.anstossen();
+  assert.match(id, /^WH/);
+  assert.equal(f.webhooks.size, 1);
+  assert.equal(v.zustand().fehler, null);
+  assert.equal(await pp.paypalBereit({ env: ZWEI, istBereit: immerBereit(), webhookId: v.id() }), true);
+});
+
+test('Gemerkte ID: beim Start keine Anfrage; nach 12 h bestaetigt; verschwunden -> neu sichergestellt', async () => {
+  let jetzt = 1e12;
+  const f = fakePaypal();
+  const ablage = fakeAblage();
+  const erste = await verwalter(f, { ablage, uhr: () => jetzt }).v.sicherstellen();
+  assert.match(erste, /^WH/);
+
+  // Neustart: dieselbe Datenbank, PayPal wird nicht gefragt
+  const n = f.aufrufe.length;
+  const { v, fehlerText } = verwalter(f, { ablage, uhr: () => jetzt });
+  assert.equal(await v.sicherstellen(), erste);
+  assert.equal(f.aufrufe.length, n, 'gemerkt: keine Anfrage beim Start');
+  assert.match(v.zustand().quelle, /gemerkt/);
+
+  // Nach 12 h: Bestaetigung per Liste (vorhanden -> nur GET, nichts angelegt)
+  jetzt += 12 * 3600 * 1000 + 1;
+  assert.equal(await v.anstossen(), erste);
+  assert.equal(anlegeAufrufe(f).length, 1);
+
+  // Jemand loescht den Webhook in der PayPal-App
+  f.webhooks.clear();
+  jetzt += 12 * 3600 * 1000 + 1;
+  const neu = await v.anstossen();
+  assert.match(neu, /^WH/);
+  assert.notEqual(neu, erste);
+  assert.equal(ablage.eintrag.id, neu);
+  assert.match(fehlerText(), new RegExp(`${erste} gibt es in der PayPal-App nicht mehr`));
+
+  // Gemerkt fuer eine andere App (Client-ID gewechselt) oder andere Adresse: gilt nicht
+  for (const [env, apiBasis] of [[{ ...ZWEI, PAYPAL_CLIENT_ID: 'neue-app' }, BASIS], [ZWEI, 'https://api.neu-ahaus.de']]) {
+    const g = fakePaypal();
+    const w = verwalter(g, { env, apiBasis, ablage: fakeAblage(structuredClone(ablage.eintrag)) });
+    const id = await w.v.sicherstellen();
+    assert.notEqual(id, neu);
+    assert.equal(anlegeAufrufe(g).length, 1);
+  }
+});
+
+test('Signaturpruefung scheitert, gemerkter Webhook weg -> neu sichergestellt (hoechstens alle 10 Minuten)', async () => {
+  let jetzt = 1e12;
+  const f = fakePaypal({ verify: 'FAILURE' });
+  const ablage = fakeAblage();
+  const alt = await verwalter(f, { ablage, uhr: () => jetzt }).v.sicherstellen();
+  f.webhooks.clear();   // in der PayPal-App geloescht
+
+  const { v } = verwalter(f, { ablage, uhr: () => jetzt });   // Neustart, ID aus der Datenbank
+  assert.equal(await v.sicherstellen(), alt);
+  const s = fakeSpeicher([bestellung()]);
+  const r = await pp.webhookVerarbeiten({ env: ZWEI, webhookId: v.id(), beiSignaturFehler: v.verdachtMelden, headers: kopf,
+    event: ereignis('PAYMENT.CAPTURE.COMPLETED', 'PPAAAA0001'), client: pp.erstelleClient({ env: ZWEI, fetch: f.fetch }),
+    finden: s.finden, speicher: s, melden: stumm });
+  assert.equal(r.status, 400);
+  assert.equal(JSON.parse(f.aufrufe.find(a => a.url.endsWith('/verify-webhook-signature')).body).webhook_id, alt);
+  const neu = await v.sicherstellen();   // laeuft schon (vom Verdacht angestossen)
+  assert.match(neu, /^WH/);
+  assert.notEqual(neu, alt);
+  assert.equal(f.webhooks.size, 1);
+  assert.equal(s.buchungen, 0);
+
+  // Weitere Signaturfehler kurz danach: keine neue Liste bei PayPal
+  const n = f.aufrufe.length;
+  v.verdachtMelden(); v.verdachtMelden();
+  await v.sicherstellen();
+  assert.equal(f.aufrufe.length, n);
+  // Nach 10 Minuten darf wieder nachgesehen werden (Webhook ist da: nur Liste, nichts angelegt)
+  jetzt += 10 * 60 * 1000;
+  v.verdachtMelden();
+  await v.sicherstellen();
+  assert.ok(f.aufrufe.length > n);
+  assert.equal(anlegeAufrufe(f).length, 2);
+});
+
+test('Vorgabe von Hand (PAYPAL_WEBHOOK_ID) hat Vorrang: keine Webhook-Anfrage, keine Datenbank', async () => {
+  const env = { ...ZWEI, PAYPAL_WEBHOOK_ID: ' WHHAND0001 ' };
+  const f = fakePaypal();
+  f.webhooks.set('WHAUTO0001', wh('WHAUTO0001', WH_URL, pp.WEBHOOK_EREIGNISSE));
+  const { v, ablage } = verwalter(f, { env, ablage: fakeAblage({ id: 'WHGEMERKT1', url: WH_URL, app: 'x' }) });
+  assert.equal(v.id(), 'WHHAND0001');
+  assert.equal(await v.sicherstellen(), 'WHHAND0001');
+  assert.equal(await v.anstossen(), 'WHHAND0001');
+  v.verdachtMelden();
+  assert.equal(f.aufrufe.length, 0);
+  assert.equal(ablage.gelesen, 0);
+  assert.match(v.zustand().quelle, /von Hand/);
+  const s = fakeSpeicher([bestellung()]);
+  await pp.webhookVerarbeiten({ env, webhookId: v.id(), headers: kopf, event: ereignis('CHECKOUT.ORDER.APPROVED', 'PPAAAA0001'),
+    client: pp.erstelleClient({ env, fetch: f.fetch }), finden: s.finden, speicher: s, melden: stumm });
+  assert.equal(JSON.parse(f.aufrufe.find(a => a.url.endsWith('/verify-webhook-signature')).body).webhook_id, 'WHHAND0001');
+});
+
+test('Schluessel ohne PAYPAL_ENV=live -> aus und KEIN Aufruf bei PayPal (auch kein Webhook, keine Datenbank)', async () => {
+  for (const env of [{ PAYPAL_CLIENT_ID: 'cid', PAYPAL_CLIENT_SECRET: 'g' }, { ...ZWEI, PAYPAL_ENV: 'sandbox' },
+                     { ...ZWEI, PAYPAL_ENV: 'LIVE' }, { ...ZWEI, PAYPAL_ENV: '' }, {}]) {
+    const f = fakePaypal();
+    const { v, ablage } = verwalter(f, { env });
+    assert.equal(await v.sicherstellen(), null);
+    assert.equal(await v.sicherstellen({ erzwingen: true }), null);
+    assert.equal(await v.anstossen(), null);
+    v.verdachtMelden();
+    assert.equal(v.id(), null);
+    assert.equal(v.zustand().vorhanden, false);
+    const probe = erstelleKontoPruefer({ abrufen: async () => { await pp.erstelleClient({ env, fetch: f.fetch }).token(); return true; } });
+    assert.equal(await pp.paypalBereit({ env, istBereit: probe, webhookId: v.id() }), false);
+    const s = fakeSpeicher([bestellung()]);
+    assert.equal((await pp.webhookVerarbeiten({ env, webhookId: v.id(), headers: kopf, event: ereignis('CHECKOUT.ORDER.APPROVED', 'PPAAAA0001'),
+      client: pp.erstelleClient({ env, fetch: f.fetch }), finden: s.finden, speicher: s, melden: stumm })).status, 503);
+    assert.equal(f.aufrufe.length, 0, JSON.stringify(env));
+    assert.equal(ablage.gelesen, 0);
+    const st = pp.paypalStatus({ env, probe: null, webhook: v.zustand(), sichtbar: false });
+    assert.equal(st.modus, 'aus');
+    assert.equal(st.fuerGaesteSichtbar, false);
+  }
+});
+
+test('Unsichere Adresse (kein https, localhost, IP, fremder Port) -> Webhook wird nie angelegt', async () => {
+  for (const basis of ['http://api.odis-ahaus.com', 'https://localhost:3001', 'https://127.0.0.1', 'https://[::1]',
+                       'https://api.localhost', 'https://intern', 'https://10.0.0.5', 'https://api.odis-ahaus.com:8443',
+                       'https://u:p@api.odis-ahaus.com', 'https://api.odis-ahaus.com/?x=1', '', 'kein url', null]) {
+    const f = fakePaypal();
+    const { v, fehlerText } = verwalter(f, { apiBasis: basis });
+    assert.equal(await v.sicherstellen(), null, String(basis));
+    assert.equal(await v.sicherstellen({ erzwingen: true }), null);
+    assert.equal(f.aufrufe.length, 0, 'keine Anfrage: ' + basis);
+    assert.ok(v.zustand().fehler, String(basis));
+    assert.match(fehlerText(), /PayPal bleibt aus/);
+  }
+  assert.deepEqual(pp.webhookAdresse('https://api.odis-ahaus.com/'), { url: WH_URL });
+  assert.deepEqual(pp.webhookAdresse(' https://API.odis-ahaus.com '), { url: WH_URL });
+  assert.deepEqual(pp.webhookAdresse('https://api.odis-ahaus.com:443'), { url: WH_URL });
+});
+
+test('"Schon vorhanden" beim Anlegen (anderer Prozess war schneller) -> erneut auflisten, kein Duplikat', async () => {
+  const f = fakePaypal({ anderer: wh('WHANDERS01', WH_URL, pp.WEBHOOK_EREIGNISSE) });
+  const { v } = verwalter(f);
+  assert.equal(await v.sicherstellen(), 'WHANDERS01');
+  assert.equal(f.webhooks.size, 1);
+  assert.equal(anlegeAufrufe(f).length, 1);
+});
+
+test('Zwei Prozesse gleichzeitig -> am Ende ein Webhook, beide nutzen dieselbe ID', async () => {
+  for (const doppeltErlaubt of [false, true]) {
+    const f = fakePaypal({ verzoegerung: 3, doppeltErlaubt });
+    const a = verwalter(f), b = verwalter(f);
+    const [x, y] = await Promise.all([a.v.sicherstellen(), b.v.sicherstellen()]);
+    assert.equal(x, y, 'doppeltErlaubt=' + doppeltErlaubt);
+    assert.equal(f.webhooks.size, 1, 'doppeltErlaubt=' + doppeltErlaubt);
+    assert.ok(f.webhooks.has(x));
+  }
+  // In einem Prozess: gleichzeitige Aufrufe teilen sich einen Lauf
+  const f = fakePaypal({ verzoegerung: 2 });
+  const { v } = verwalter(f);
+  const ids = await Promise.all([v.sicherstellen(), v.anstossen(), v.sicherstellen(), v.anstossen()]);
+  assert.equal(new Set(ids).size, 1);
+  assert.equal(anlegeAufrufe(f).length, 1);
+});
+
+test('Sicherstellen wirft nie: Netz weg, Datenbank weg, 403 mit klarem Grund', async () => {
+  const netzWeg = { fetch: async () => { throw new Error('Netz weg'); } };
+  const a = verwalter(netzWeg, { ablage: fakeAblage(null, { lesenWirft: true }) });
+  assert.equal(await a.v.sicherstellen(), null);
+  assert.match(a.v.zustand().fehler, /Netz weg/);
+
+  // Datenbank nicht beschreibbar: im Prozess trotzdem bekannt, Warnung im Log
+  const f = fakePaypal();
+  const b = verwalter(f, { ablage: fakeAblage(null, { schreibenWirft: true }) });
+  assert.match(await b.v.sicherstellen(), /^WH/);
+  assert.match(b.m.map(x => x[1]).join('\n'), /nicht in der Datenbank gemerkt/);
+
+  // PayPal verweigert die Webhook-Verwaltung (App ohne Recht): klarer Ausweg
+  const g = fakePaypal({ webhookStatus: 403 });
+  const c = verwalter(g);
+  assert.equal(await c.v.sicherstellen(), null);
+  assert.match(c.v.zustand().fehler, /403.*PAYPAL_WEBHOOK_ID/);
+
+  // Anmeldung scheitert
+  const h = fakePaypal({ tokenOk: false });
+  const d = verwalter(h);
+  assert.equal(await d.v.sicherstellen(), null);
+  assert.match(d.v.zustand().fehler, /Anmeldung bei PayPal scheitert/);
+  assert.equal(h.aufrufe.length, 1, 'nach gescheiterter Anmeldung keine weitere Anfrage');
+});
+
+test('paypalBereit: ohne bekannten Webhook keine Probe-Anfrage', async () => {
+  const f = fakePaypal();
+  const probe = erstelleKontoPruefer({ abrufen: async () => { await pp.erstelleClient({ env: ZWEI, fetch: f.fetch }).token(); return true; } });
+  assert.equal(await pp.paypalBereit({ env: ZWEI, istBereit: probe, webhookId: null }), false);
+  assert.equal(f.aufrufe.length, 0);
+  assert.equal(await pp.paypalBereit({ env: ZWEI, istBereit: probe, webhookId: 'WH00000001X' }), true);
+  assert.equal(f.aufrufe.length, 1);
+});
+
+test('Statusauskunft: Klartext je Stufe, keine Geheimnisse', async () => {
+  const geheim = 'EJ-SUPERGEHEIM-secret-123', cid = 'AV-CLIENT-ID-xyz-987';
+  const voll = { PAYPAL_CLIENT_ID: cid, PAYPAL_CLIENT_SECRET: geheim, PAYPAL_ENV: 'live' };
+  const ohneGeheim = st => {
+    const t = JSON.stringify(st);
+    assert.equal(t.includes(geheim), false, 'Secret in der Auskunft');
+    assert.equal(t.includes(cid), false, 'Client-ID in der Auskunft');
+  };
+
+  let st = pp.paypalStatus({ env: {}, webhook: {}, sichtbar: false });
+  assert.deepEqual(st.schluesselGesetzt, { PAYPAL_CLIENT_ID: false, PAYPAL_CLIENT_SECRET: false });
+  assert.equal(st.modus, 'aus');
+  assert.match(st.naechsterSchritt, /PAYPAL_CLIENT_ID und PAYPAL_CLIENT_SECRET/);
+
+  st = pp.paypalStatus({ env: { ...voll, PAYPAL_ENV: 'sandbox' }, webhook: {}, sichtbar: false });
+  assert.deepEqual(st.schluesselGesetzt, { PAYPAL_CLIENT_ID: true, PAYPAL_CLIENT_SECRET: true });
+  assert.equal(st.modus, 'aus');
+  assert.match(st.modusHinweis, /nicht genau "live"/);
+  assert.match(st.naechsterSchritt, /PAYPAL_ENV=live/);
+  assert.equal(JSON.stringify(st).includes('sandbox'), false, 'der Wert von PAYPAL_ENV wird nicht ausgegeben');
+  ohneGeheim(st);
+
+  // Probe scheitert, und der Fehlertext enthielte (theoretisch) die Werte
+  st = pp.paypalStatus({ env: voll, probe: { ok: false, grund: `PayPal Auth: ${cid}:${geheim} abgelehnt` }, webhook: {}, sichtbar: false });
+  assert.match(st.probeAnmeldung, /^fehlgeschlagen: PayPal Auth: \*\*\*:\*\*\* abgelehnt/);
+  assert.match(st.naechsterSchritt, /Anmeldung bei PayPal scheitert/);
+  ohneGeheim(st);
+
+  // Echter Ablauf: Webhook angelegt, sichtbar
+  const f = fakePaypal();
+  const { v } = verwalter(f, { env: voll });
+  st = pp.paypalStatus({ env: voll, probe: { ok: true }, webhook: v.zustand(), sichtbar: false });
+  assert.equal(st.webhook.vorhanden, false);
+  assert.equal(st.webhook.adresse, WH_URL);
+  assert.match(st.naechsterSchritt, /Webhook noch nicht bereit/);
+  await v.sicherstellen();
+  const sichtbar = await pp.paypalBereit({ env: voll, istBereit: immerBereit(), webhookId: v.id() });
+  st = pp.paypalStatus({ env: voll, probe: { ok: true }, webhook: v.zustand(), sichtbar });
+  assert.equal(st.modus, 'live');
+  assert.equal(st.probeAnmeldung, 'ok');
+  assert.equal(st.webhook.vorhanden, true);
+  assert.equal(st.webhook.adresse, WH_URL);
+  assert.deepEqual(st.webhook.ereignisse, pp.WEBHOOK_EREIGNISSE);
+  assert.equal(st.fuerGaesteSichtbar, true);
+  assert.match(st.naechsterSchritt, /eingeschaltet/);
+  ohneGeheim(st);
+  ohneGeheim(v.zustand());
 });

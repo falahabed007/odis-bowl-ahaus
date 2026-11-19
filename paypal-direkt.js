@@ -5,11 +5,16 @@
 // direkt ueber die REST-App im eigenen PayPal-Geschaeftskonto des Ladens: Das Geld
 // geht direkt auf sein PayPal-Konto. Orders v2, intent CAPTURE, ohne SDK.
 //
-// Der Schalter: PayPal gilt erst als eingerichtet, wenn PAYPAL_CLIENT_ID,
-// PAYPAL_CLIENT_SECRET und PAYPAL_WEBHOOK_ID gesetzt sind, PAYPAL_ENV genau `live`
-// ist UND eine Probe-Anmeldung bei PayPal (Token holen) gelingt. Mit Sandbox-Daten
-// kann auf dieser Seite nie "bezahlt" werden: Ohne PAYPAL_ENV=live gibt es keinen
-// einzigen PayPal-Aufruf, weder Bestellung noch Einzug noch Webhook.
+// Der Schalter (Stand 19.11.2026): Je Laden werden nur ZWEI Werte eingetragen,
+// PAYPAL_CLIENT_ID und PAYPAL_CLIENT_SECRET der Live-REST-App des Ladens. Scharf
+// geschaltet wird bewusst mit PAYPAL_ENV=live. PayPal gilt erst als eingerichtet, wenn
+//  - beide Werte gesetzt sind und PAYPAL_ENV genau `live` ist,
+//  - eine Probe-Anmeldung bei PayPal (Token holen) gelingt UND
+//  - ein Webhook bekannt ist. Den legt der Server selbst in der PayPal-App an bzw.
+//    findet ihn dort (erstelleWebhookVerwalter, unten); PAYPAL_WEBHOOK_ID bleibt als
+//    optionale Vorgabe von Hand und hat dann Vorrang.
+// Mit Sandbox-Daten kann auf dieser Seite nie "bezahlt" werden: Ohne PAYPAL_ENV=live
+// gibt es keinen einzigen PayPal-Aufruf, weder Bestellung noch Einzug noch Webhook.
 //
 // Geld bewegt sich bei intent CAPTURE erst mit dem Einzug (capture), und den
 // macht nur dieser Server. Deshalb:
@@ -23,10 +28,17 @@
 //
 // Dieses Modul enthaelt nur, was sich ohne Express, Mongoose und echtes PayPal
 // rechnen laesst. PayPal-Aufrufe gehen ueber eine injizierbare fetch-Funktion,
-// die Datenbank ueber ein injiziertes `speicher`-Objekt (test/paypal-direkt.test.js).
+// die Datenbank ueber ein injiziertes `speicher`- bzw. `ablage`-Objekt
+// (test/paypal-direkt.test.js). Einzige weitere Abhaengigkeit ist Nodes eigenes crypto.
+
+const crypto = require('crypto');
 
 const LIVE_BASIS = 'https://api-m.paypal.com';
-const PAYPAL_VARIABLEN = ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET', 'PAYPAL_WEBHOOK_ID'];
+// Die zwei Pflichtwerte je Laden. PAYPAL_ENV=live ist der Schalter, PAYPAL_WEBHOOK_ID
+// eine optionale Vorgabe von Hand.
+const PAYPAL_VARIABLEN = ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET'];
+// Route des Webhooks auf dem eigenen Server (server.js)
+const WEBHOOK_PFAD = '/api/paypal-webhook';
 
 // Fristen fuer Wachhund und Aufraeumen (alle 5 Minuten, server.js)
 const FRISTEN = {
@@ -49,33 +61,82 @@ const FRISTEN = {
 // ─── Schalter ────────────────────────────────────────────────────
 
 // Was ist gesetzt? Nie Geheimwerte, nur Ja/Nein und die fehlenden Namen.
-//  zugang:       Client-ID und Secret gesetzt und PAYPAL_ENV=live -> Einziehen,
-//                Abgleichen und Erstatten fuer bestehende Bestellungen
-//  vollstaendig: zusaetzlich PAYPAL_WEBHOOK_ID -> neue Bestellungen und Webhook
+//  schluessel:     Client-ID und Secret gesetzt (egal ob scharf geschaltet)
+//  zugang:         zusaetzlich PAYPAL_ENV=live -> PayPal darf angesprochen werden
+//                  (Einziehen, Abgleichen, Erstatten, Webhook sicherstellen)
+//  vollstaendig:   dasselbe wie zugang (alle Pflichtwerte und der Schalter)
+//  webhookVorgabe: PAYPAL_WEBHOOK_ID von Hand, sonst null (optional, hat Vorrang)
 function paypalKonfiguration(env = {}) {
   const gesetzt = n => typeof env[n] === 'string' && env[n].trim() !== '';
   const live = env.PAYPAL_ENV === 'live';
+  const schluessel = PAYPAL_VARIABLEN.every(gesetzt);
   const fehlend = PAYPAL_VARIABLEN.filter(n => !gesetzt(n));
   if (!live) fehlend.push('PAYPAL_ENV=live');
-  const irgendwas = PAYPAL_VARIABLEN.some(gesetzt) || (typeof env.PAYPAL_ENV === 'string' && env.PAYPAL_ENV !== '');
+  const irgendwas = [...PAYPAL_VARIABLEN, 'PAYPAL_WEBHOOK_ID'].some(gesetzt)
+    || (typeof env.PAYPAL_ENV === 'string' && env.PAYPAL_ENV !== '');
+  const zugang = live && schluessel;
   return {
     live,
-    zugang:       live && gesetzt('PAYPAL_CLIENT_ID') && gesetzt('PAYPAL_CLIENT_SECRET'),
-    vollstaendig: fehlend.length === 0,
-    teilweise:    irgendwas && fehlend.length > 0,
+    schluessel,
+    zugang,
+    vollstaendig:   zugang,
+    teilweise:      irgendwas && !zugang,
     fehlend,
-    clientId:     gesetzt('PAYPAL_CLIENT_ID') ? env.PAYPAL_CLIENT_ID.trim() : null,
+    clientId:       gesetzt('PAYPAL_CLIENT_ID') ? env.PAYPAL_CLIENT_ID.trim() : null,
+    webhookVorgabe: gesetzt('PAYPAL_WEBHOOK_ID') ? env.PAYPAL_WEBHOOK_ID.trim() : null,
   };
 }
 
-// Entscheidung fuer /api/config und create-paypal-order: true nur, wenn alles gesetzt
-// ist UND die Probe-Anmeldung gelingt. istBereit kommt aus
-// stripeDirekt.erstelleKontoPruefer (Zwischenspeicher 5 min / Fehler 1 min, 4 s
-// Zeitlimit). Fragt PayPal nur, wenn alles gesetzt ist. Wirft nie.
-async function paypalBereit({ env, istBereit }) {
+// Probe-Anmeldung mit Zwischenspeicher (dieselbe Logik wie erstelleKontoPruefer in
+// stripe-direkt.js, hier eigenstaendig, damit das Modul in Standorte ohne
+// stripe-direkt.js passt). Liefert istBereit(schluessel) -> Promise<boolean>: fragt
+// hoechstens alle `ttlMs` (Fehler: `fehlerTtlMs`), wartet hoechstens `zeitlimitMs`,
+// wirft nie. `abrufen()` muss true liefern, wenn die Anmeldung gelingt.
+function erstelleProbe({ abrufen, ttlMs = 5 * 60 * 1000, fehlerTtlMs = 60 * 1000,
+                         zeitlimitMs = 4000, uhr = () => Date.now(), melden = () => {} }) {
+  let speicher = null;   // { schluessel, bereit, bis }
+  let laufend  = null;   // { schluessel, promise } - gleichzeitige Anfragen teilen sich eine Probe
+  async function fragen(schluessel) {
+    let timer;
+    try {
+      const ergebnis = await Promise.race([
+        Promise.resolve().then(() => abrufen(schluessel)),
+        new Promise((_, nein) => { timer = setTimeout(() => nein(new Error('Zeitlimit')), zeitlimitMs); }),
+      ]);
+      const bereit = ergebnis === true;
+      speicher = { schluessel, bereit, bis: uhr() + ttlMs };
+      return bereit;
+    } catch (e) {
+      try { melden(e); } catch { /* Melden darf nie stoeren */ }
+      speicher = { schluessel, bereit: false, bis: uhr() + fehlerTtlMs };
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  async function istBereit(schluessel) {
+    if (!schluessel) return false;
+    if (speicher && speicher.schluessel === schluessel && uhr() < speicher.bis) return speicher.bereit;
+    if (laufend && laufend.schluessel === schluessel) return laufend.promise;
+    const promise = fragen(schluessel);
+    laufend = { schluessel, promise };
+    try { return await promise; } finally { if (laufend && laufend.promise === promise) laufend = null; }
+  }
+  // Nach einer gescheiterten PayPal-Bestellung sofort neu fragen
+  istBereit.vergessen = () => { speicher = null; };
+  return istBereit;
+}
+
+// Entscheidung fuer /api/config und create-paypal-order: true nur, wenn Schluessel und
+// Schalter stehen, ein Webhook bekannt ist UND die Probe-Anmeldung gelingt. istBereit
+// kommt aus erstelleProbe (Zwischenspeicher 5 min / Fehler 1 min, 4 s Zeitlimit). webhookId: die bekannte Webhook-ID (verwalter.id()); fehlt das
+// Argument, gilt PAYPAL_WEBHOOK_ID. Fragt PayPal nur, wenn alles andere steht. Wirft nie.
+async function paypalBereit({ env, istBereit, webhookId }) {
   try {
     const k = paypalKonfiguration(env);
-    if (!k.vollstaendig) return false;
+    if (!k.zugang) return false;
+    const id = webhookId === undefined ? k.webhookVorgabe : webhookId;
+    if (!id) return false;
     return (await istBereit(k.clientId)) === true;
   } catch {
     return false;
@@ -149,7 +210,24 @@ function erstelleClient({ env, fetch: holen = globalThis.fetch, zeitlimitMs = 15
   async function signaturPruefen(daten) {
     return aufruf('/v1/notifications/verify-webhook-signature', 'POST', await token(), daten);
   }
-  return { token, aufruf, bestellungLesen, einziehen, bestellungAnlegen, signaturPruefen };
+  // Webhooks der App (Notifications API v1). Eine App hat hoechstens 10 Webhooks.
+  async function webhooksAuflisten(t) {
+    const d = await aufruf('/v1/notifications/webhooks', 'GET', t || await token());
+    return Array.isArray(d.webhooks) ? d.webhooks : [];
+  }
+  async function webhookAnlegen(url, ereignisse, t) {
+    return aufruf('/v1/notifications/webhooks', 'POST', t || await token(),
+      { url, event_types: ereignisse.map(name => ({ name })) });
+  }
+  async function webhookEreignisseSetzen(id, ereignisse, t) {
+    return aufruf(`/v1/notifications/webhooks/${encodeURIComponent(id)}`, 'PATCH', t || await token(),
+      [{ op: 'replace', path: '/event_types', value: ereignisse.map(name => ({ name })) }]);
+  }
+  async function webhookLoeschen(id, t) {
+    return aufruf(`/v1/notifications/webhooks/${encodeURIComponent(id)}`, 'DELETE', t || await token());
+  }
+  return { token, aufruf, bestellungLesen, einziehen, bestellungAnlegen, signaturPruefen,
+           webhooksAuflisten, webhookAnlegen, webhookEreignisseSetzen, webhookLoeschen };
 }
 
 // ─── Bestellung anlegen ──────────────────────────────────────────
@@ -343,7 +421,8 @@ async function rueckkehrVerarbeiten({ body, env, finden, client, speicher, melde
 
 // ─── Webhook (POST /api/paypal-webhook) ──────────────────────────
 
-// Ereignisse, die der Laden in seiner PayPal-App abonnieren muss
+// Ereignisse, die der Webhook abonnieren muss (erstelleWebhookVerwalter legt ihn damit
+// an bzw. ergaenzt sie). Mehr braucht der Abgleich nicht.
 const WEBHOOK_EREIGNISSE = ['CHECKOUT.ORDER.APPROVED', 'PAYMENT.CAPTURE.COMPLETED'];
 // Weitere, die nur einen Abgleich ausloesen, falls sie doch abonniert sind
 const WEBHOOK_ABGLEICH = new Set([...WEBHOOK_EREIGNISSE, 'PAYMENT.CAPTURE.PENDING', 'PAYMENT.CAPTURE.DENIED', 'PAYMENT.CAPTURE.DECLINED']);
@@ -362,12 +441,18 @@ function ppOrderIdAusEreignis(event) {
 //  400 Signatur ungueltig oder Kopfzeilen fehlen (nicht von PayPal)
 //  200 verarbeitet, oder fremdes/unbekanntes Ereignis bzw. unbekannte Bestellung
 //      (eine Wiederholung aendert daran nichts)
-async function webhookVerarbeiten({ env, headers = {}, event, client, finden, speicher, jetzt = new Date(), melden = console }) {
+// webhookId: die bekannte ID (verwalter.id()); fehlt das Argument, gilt PAYPAL_WEBHOOK_ID.
+// beiSignaturFehler: wird gerufen (ohne zu warten), wenn PayPal die Signatur ablehnt oder
+// die Pruefung scheitert - etwa weil es den Webhook nicht mehr gibt (verwalter.verdachtMelden).
+async function webhookVerarbeiten({ env, webhookId, beiSignaturFehler = () => {}, headers = {}, event, client, finden, speicher, jetzt = new Date(), melden = console }) {
   const k = paypalKonfiguration(env);
-  if (!k.vollstaendig) {
-    melden.error('PayPal-Webhook: PayPal nicht vollstaendig eingerichtet (' + k.fehlend.join(', ') + ') - nichts eingebucht');
+  const whId = webhookId === undefined ? k.webhookVorgabe : webhookId;
+  if (!k.zugang || !whId) {
+    const fehlt = k.zugang ? ['kein Webhook bekannt'] : k.fehlend;
+    melden.error('PayPal-Webhook: PayPal nicht vollstaendig eingerichtet (' + fehlt.join(', ') + ') - nichts eingebucht');
     return { status: 503, json: { message: 'PayPal nicht eingerichtet' } };
   }
+  const verdacht = () => { try { beiSignaturFehler(); } catch { /* darf nie stoeren */ } };
   const kopf = n => (typeof headers[n] === 'string' ? headers[n] : '');
   const pflicht = ['paypal-auth-algo', 'paypal-cert-url', 'paypal-transmission-id', 'paypal-transmission-sig', 'paypal-transmission-time'];
   if (pflicht.some(n => !kopf(n)) || !event || typeof event !== 'object' || Array.isArray(event)) {
@@ -380,14 +465,16 @@ async function webhookVerarbeiten({ env, headers = {}, event, client, finden, sp
       auth_algo: kopf('paypal-auth-algo'), cert_url: kopf('paypal-cert-url'),
       transmission_id: kopf('paypal-transmission-id'), transmission_sig: kopf('paypal-transmission-sig'),
       transmission_time: kopf('paypal-transmission-time'),
-      webhook_id: env.PAYPAL_WEBHOOK_ID.trim(), webhook_event: event,
+      webhook_id: whId, webhook_event: event,
     });
   } catch (e) {
     melden.error('PayPal-Webhook: Signaturpruefung nicht moeglich:', e.message);
+    verdacht();
     return { status: 503, json: { message: 'Signaturpruefung nicht moeglich' } };
   }
   if (!pruefung || pruefung.verification_status !== 'SUCCESS') {
     melden.warn('PayPal-Webhook: ungueltige Signatur - nichts eingebucht');
+    verdacht();
     return { status: 400, json: { message: 'invalid signature' } };
   }
 
@@ -406,6 +493,347 @@ async function webhookVerarbeiten({ env, headers = {}, event, client, finden, sp
     melden.error('PayPal-Webhook Verarbeitung fehlgeschlagen:', e.message);
     return { status: 500, json: { message: 'Verarbeitung fehlgeschlagen' } };
   }
+}
+
+// ─── Webhook selbst sicherstellen ────────────────────────────────
+//
+// Statt PAYPAL_WEBHOOK_ID von Hand: Sobald Schluessel, PAYPAL_ENV=live und Anmeldung
+// stehen, sorgt der Server dafuer, dass es in der PayPal-App des Ladens einen Webhook
+// auf <API-Basis>/api/paypal-webhook mit WEBHOOK_EREIGNISSE gibt:
+//  1. Die gemerkte ID (Datenbank ueber `ablage`, dazu im Prozess) gilt, solange Adresse
+//     und App (Kennung aus der Client-ID) passen. Beim Start wird PayPal nicht gefragt.
+//  2. Sonst Webhooks der App auflisten. Gibt es einen auf die Adresse, gilt er; fehlen
+//     Ereignisse, werden sie ergaenzt (bestehende bleiben).
+//  3. Sonst anlegen. Scheitert das (auch "schon vorhanden": ein zweiter Prozess war
+//     schneller), wird erneut aufgelistet und ein vorhandener genommen. Nach dem Anlegen
+//     wird noch einmal aufgelistet: Haben zwei Prozesse gleichzeitig angelegt, waehlen
+//     beide denselben (kleinste ID), und der andere loescht seinen eigenen wieder.
+//  4. Alle WEBHOOK_BESTAETIGEN_STUNDEN und nach einem Signaturfehler (hoechstens alle
+//     WEBHOOK_VERDACHT_MINUTEN) wird nachgesehen, ob die gemerkte ID noch in der Liste
+//     steht. Fehlt sie, wird neu sichergestellt.
+// Misserfolg: wirft nie, PayPal bleibt aus (solange kein Webhook bekannt ist), klare
+// Logzeile, naechster Versuch erst nach WEBHOOK_PAUSEN_MIN (1, 2, 5, 15, 30, dann 60 min).
+// Ein Webhook auf eine Adresse ohne https oder auf localhost/IP wird nie angelegt.
+// PAYPAL_WEBHOOK_ID (von Hand) hat Vorrang: dann fragt der Verwalter PayPal gar nicht.
+//
+// ablage: { lesen() -> {id,url,app,ereignisse}|null, schreiben(eintrag), loeschen() }
+
+const WEBHOOK_PAUSEN_MIN = [1, 2, 5, 15, 30, 60];
+const WEBHOOK_BESTAETIGEN_STUNDEN = 12;
+const WEBHOOK_VERDACHT_MINUTEN = 10;
+// Von Hand ausgeloest (Admin-Route ?erneut=1): hoechstens alle 30 Sekunden
+const WEBHOOK_ERZWINGEN_ABSTAND_MS = 30 * 1000;
+
+// Kennung der PayPal-App, ohne die Client-ID selbst zu speichern
+const appKennung = clientId => crypto.createHash('sha256').update(String(clientId)).digest('hex').slice(0, 16);
+
+const IP_ODER_LOKAL = h => h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.local')
+  || !h.includes('.') || /^[\d.]+$/.test(h) || h.includes(':');
+
+// Webhook-Adresse aus der oeffentlichen API-Basis: { url } oder { fehler }.
+// Nur https, Port 443, kein localhost, keine IP, keine Zugangsdaten/Query/Anker.
+function webhookAdresse(apiBasis) {
+  let u;
+  try { u = new URL(String(apiBasis || '').trim()); }
+  catch { return { fehler: `Oeffentliche API-Adresse "${String(apiBasis || '')}" ist keine gueltige Adresse` }; }
+  const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  if (u.protocol !== 'https:') return { fehler: `Oeffentliche API-Adresse ${u.origin} ist nicht https - Webhook wird nicht angelegt` };
+  if (IP_ODER_LOKAL(host)) return { fehler: `Oeffentliche API-Adresse ${u.origin} ist lokal oder eine IP - Webhook wird nicht angelegt` };
+  if (u.port && u.port !== '443') return { fehler: `Oeffentliche API-Adresse ${u.origin}: PayPal stellt nur an Port 443 zu` };
+  if (u.username || u.password || u.search || u.hash) return { fehler: 'Oeffentliche API-Adresse darf keine Zugangsdaten, ? oder # enthalten' };
+  return { url: (u.origin + u.pathname).replace(/\/+$/, '') + WEBHOOK_PFAD };
+}
+
+function adresseNormal(url) {
+  try { const u = new URL(String(url)); return (u.origin + u.pathname).replace(/\/+$/, '').toLowerCase(); }
+  catch { return null; }
+}
+const gleicheAdresse = (a, b) => { const x = adresseNormal(a); return !!x && x === adresseNormal(b); };
+
+const ereignisNamen = w => (w && Array.isArray(w.event_types) ? w.event_types : [])
+  .map(e => e && e.name).filter(n => typeof n === 'string');
+function fehlendeEreignisse(w) {
+  const namen = ereignisNamen(w);
+  return namen.includes('*') ? [] : WEBHOOK_EREIGNISSE.filter(n => !namen.includes(n));
+}
+
+// Der Webhook der App auf diese Adresse: bevorzugt die bekannte ID, sonst einer mit
+// allen Ereignissen, bei Gleichstand die kleinste ID (zwei Prozesse waehlen gleich).
+function webhookWaehlen(liste, url, bevorzugt) {
+  const k = (liste || []).filter(w => w && istPaypalId(w.id) && gleicheAdresse(w.url, url));
+  if (!k.length) return null;
+  const b = bevorzugt && k.find(w => w.id === bevorzugt);
+  if (b) return b;
+  return k.slice().sort((x, y) => (fehlendeEreignisse(x).length - fehlendeEreignisse(y).length)
+    || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0))[0];
+}
+
+function webhookFehlerText(e) {
+  if (e && (e.status === 401 || e.paypalName === 'invalid_client')) {
+    return 'Anmeldung bei PayPal scheitert (Client-ID oder Secret falsch, oder keine Live-App)';
+  }
+  if (e && e.status === 403) {
+    return 'PayPal verweigert dieser App die Webhook-Verwaltung (403). Ausweg: Webhook in der PayPal-App von Hand anlegen und PAYPAL_WEBHOOK_ID setzen';
+  }
+  if (e && e.paypalName === 'WEBHOOK_NUMBER_LIMIT_EXCEEDED') {
+    return 'Die PayPal-App hat schon die Hoechstzahl an Webhooks (10). Einen alten in der PayPal-App loeschen';
+  }
+  return (e && e.message) || String(e);
+}
+
+const QUELLE_TEXT = { gemerkt: 'gemerkt (Datenbank)', gefunden: 'in der PayPal-App gefunden',
+  ergaenzt: 'in der PayPal-App gefunden, Ereignisse ergaenzt', angelegt: 'vom Server angelegt' };
+
+function erstelleWebhookVerwalter({ env, client, ablage = null, apiBasis, uhr = () => Date.now(), melden = console,
+                                    pausenMin = WEBHOOK_PAUSEN_MIN,
+                                    bestaetigenMs = WEBHOOK_BESTAETIGEN_STUNDEN * 3600 * 1000,
+                                    verdachtAbstandMs = WEBHOOK_VERDACHT_MINUTEN * 60 * 1000 }) {
+  let bekannt = null;    // { id, url, app, ereignisse, quelle, bestaetigtAm }
+  let fehler  = null;    // { grund, am, versuche, naechsterVersuch }
+  let geladen = false;   // gemerkte ID aus der Datenbank gelesen
+  let verdacht = false, letzterVerdacht = -Infinity, letzteVorgabeWarnung = -Infinity, letztesErzwingen = -Infinity;
+  let laufend = null;
+  const log = (art, text) => { try { melden[art](text); } catch { /* Melden darf nie stoeren */ } };
+
+  function lage() {
+    const k = paypalKonfiguration(env);
+    return { k, adr: webhookAdresse(apiBasis), app: k.clientId ? appKennung(k.clientId) : null };
+  }
+  const passt = (w, l) => !!w && !!l.adr.url && !!l.app && w.app === l.app
+    && gleicheAdresse(w.url, l.adr.url) && istPaypalId(w.id);
+  const frisch = (l, jetzt) => passt(bekannt, l) && !verdacht && jetzt - bekannt.bestaetigtAm < bestaetigenMs;
+
+  // Die Webhook-ID, die jetzt gilt, oder null. Synchron, fragt niemanden.
+  function id() {
+    const l = lage();
+    if (!l.k.zugang) return null;
+    if (l.k.webhookVorgabe) return l.k.webhookVorgabe;
+    return passt(bekannt, l) ? bekannt.id : null;
+  }
+
+  function scheitern(grund) {
+    const versuche = (fehler ? fehler.versuche : 0) + 1;
+    const pause = pausenMin[Math.min(versuche - 1, pausenMin.length - 1)];
+    fehler = { grund, am: uhr(), versuche, naechsterVersuch: uhr() + pause * 60 * 1000 };
+    const folge = passt(bekannt, lage())
+      ? `Der bekannte Webhook ${bekannt.id} bleibt in Gebrauch.`
+      : 'PayPal bleibt aus (/api/config meldet paypal:false).';
+    log('error', `⚠️  PayPal-Webhook nicht sichergestellt: ${grund}. ${folge} Naechster Versuch in ${pause} Min.`);
+  }
+
+  async function merken(eintrag) {
+    if (!ablage) return;
+    try { await ablage.schreiben(eintrag); }
+    catch (e) { log('warn', `PayPal-Webhook ${eintrag.id}: nicht in der Datenbank gemerkt (${e.message}). Beim naechsten Start wird PayPal erneut gefragt.`); }
+  }
+
+  async function lauf(erzwingen) {
+    const l = lage();
+    if (!l.k.zugang) return null;                          // Schalter aus: kein Aufruf bei PayPal
+    if (l.k.webhookVorgabe) return l.k.webhookVorgabe;     // von Hand: nichts verwalten
+    if (l.adr.fehler) {                                    // nie einen unsicheren Webhook anlegen
+      if (!fehler || fehler.grund !== l.adr.fehler || uhr() >= fehler.naechsterVersuch) scheitern(l.adr.fehler);
+      return null;
+    }
+
+    if (!geladen && ablage) {
+      try {
+        const w = await ablage.lesen();
+        geladen = true;
+        if (!bekannt && passt(w, l)) {
+          bekannt = { id: w.id, url: l.adr.url, app: l.app, ereignisse: Array.isArray(w.ereignisse) ? w.ereignisse : [],
+                      quelle: 'gemerkt', bestaetigtAm: uhr() };
+          fehler = null;
+          log('log', `💙 PayPal-Webhook ${w.id} (gemerkt): ${l.adr.url}`);
+        }
+      } catch (e) {
+        log('warn', `PayPal-Webhook: gemerkte ID nicht lesbar (${e.message}) - PayPal wird gefragt`);
+      }
+    }
+    const jetzt = uhr();
+    if (frisch(l, jetzt)) return bekannt.id;
+    if (fehler && jetzt < fehler.naechsterVersuch && !erzwingen) return id();
+
+    try {
+      const t = await client.token();
+      let liste = await client.webhooksAuflisten(t);
+      const vorher = passt(bekannt, l) ? bekannt : null;
+      if (vorher && !liste.some(w => w && w.id === vorher.id)) {
+        log('error', `🚨 PayPal-Webhook ${vorher.id} gibt es in der PayPal-App nicht mehr - wird neu sichergestellt`);
+        bekannt = null;
+        if (ablage && ablage.loeschen) { try { await ablage.loeschen(); } catch { /* wird gleich ueberschrieben */ } }
+      }
+
+      let wahl = webhookWaehlen(liste, l.adr.url, vorher && vorher.id);
+      let quelle = vorher && wahl && wahl.id === vorher.id ? vorher.quelle : 'gefunden';
+      if (!wahl) {
+        let neu = null;
+        try {
+          neu = await client.webhookAnlegen(l.adr.url, WEBHOOK_EREIGNISSE, t);
+        } catch (e) {
+          // "Schon vorhanden" (ein anderer Prozess war schneller) oder Ausgang unklar:
+          // erneut auflisten und einen vorhandenen nehmen, nie blind ein zweites Mal anlegen.
+          liste = await client.webhooksAuflisten(t);
+          wahl = webhookWaehlen(liste, l.adr.url);
+          if (!wahl) throw e;
+        }
+        if (neu) {
+          if (!istPaypalId(neu && neu.id)) throw new Error('PayPal hat beim Anlegen keine Webhook-ID geliefert');
+          wahl = neu; quelle = 'angelegt';
+          // Zwei Prozesse koennen gleichzeitig angelegt haben: alle waehlen denselben,
+          // ein ueberzaehliger eigener wird wieder geloescht.
+          try {
+            liste = await client.webhooksAuflisten(t);
+            const gemeinsam = webhookWaehlen(liste, l.adr.url);
+            if (gemeinsam && gemeinsam.id !== neu.id && liste.some(w => w && w.id === neu.id)) {
+              try {
+                await client.webhookLoeschen(neu.id, t);
+                liste = liste.filter(w => w && w.id !== neu.id);
+                log('warn', `PayPal-Webhook: gleichzeitig doppelt angelegt, eigener ${neu.id} wieder geloescht, es gilt ${gemeinsam.id}`);
+              } catch (e2) {
+                log('warn', `PayPal-Webhook: doppelt angelegt, ${neu.id} liess sich nicht loeschen (${e2.message}) - bitte in der PayPal-App loeschen`);
+              }
+              wahl = gemeinsam; quelle = 'gefunden';
+            }
+          } catch { liste = [neu]; /* Kontrolle ist Zugabe; der neue gilt */ }
+        }
+      }
+
+      if (fehlendeEreignisse(wahl).length) {
+        const alle = [...new Set([...ereignisNamen(wahl), ...WEBHOOK_EREIGNISSE])];
+        const antwort = await client.webhookEreignisseSetzen(wahl.id, alle, t);
+        const nachher = antwort && Array.isArray(antwort.event_types) ? antwort : { ...wahl, event_types: alle.map(name => ({ name })) };
+        if (fehlendeEreignisse(nachher).length) throw new Error('PayPal hat die fehlenden Ereignisse nicht uebernommen');
+        wahl = { ...wahl, event_types: nachher.event_types };
+        if (quelle !== 'angelegt') quelle = 'ergaenzt';
+      }
+
+      const neuGewaehlt = !vorher || vorher.id !== wahl.id || quelle === 'ergaenzt';
+      bekannt = { id: wahl.id, url: l.adr.url, app: l.app, ereignisse: ereignisNamen(wahl), quelle, bestaetigtAm: uhr() };
+      verdacht = false;
+      fehler = null;
+      if (neuGewaehlt) {
+        await merken({ id: bekannt.id, url: bekannt.url, app: bekannt.app, ereignisse: bekannt.ereignisse, am: new Date(uhr()) });
+        log('log', `💙 PayPal-Webhook ${bekannt.id} bereit (${QUELLE_TEXT[quelle]}): ${l.adr.url}`);
+      }
+      // Gerade selbst angelegt: einen gleichzeitig angelegten zweiten loescht dessen Prozess
+      // selbst (und meldet, falls das scheitert); Reste meldet die naechste Bestaetigung.
+      const gleiche = liste.filter(w => w && gleicheAdresse(w.url, l.adr.url)).length;
+      if (gleiche > 1 && quelle !== 'angelegt') log('warn', `PayPal-Webhook: ${gleiche} Webhooks auf ${l.adr.url} in der PayPal-App, es gilt ${bekannt.id} - die uebrigen bitte dort loeschen`);
+      return bekannt.id;
+    } catch (e) {
+      scheitern(webhookFehlerText(e));
+      return id();   // ein bekannter Webhook bleibt bei einem voruebergehenden Fehler in Gebrauch
+    }
+  }
+
+  // Stellt den Webhook sicher (oder bestaetigt ihn). Einer zur Zeit, wirft nie, liefert id().
+  // erzwingen: Pause und Bestaetigungsfrist uebergehen (hoechstens alle 30 s).
+  function sicherstellen({ erzwingen = false } = {}) {
+    if (laufend) return laufend;
+    if (erzwingen) {
+      if (uhr() - letztesErzwingen < WEBHOOK_ERZWINGEN_ABSTAND_MS) erzwingen = false;
+      else { letztesErzwingen = uhr(); verdacht = true; }
+    }
+    laufend = (async () => {
+      try { return await lauf(erzwingen); }
+      catch (e) { log('error', `PayPal-Webhook: unerwarteter Fehler ${e && e.message}`); return id(); }
+      finally { laufend = null; }
+    })();
+    return laufend;
+  }
+
+  // Fuer Gastanfragen und den 5-Minuten-Takt: startet sicherstellen() nur, wenn es faellig
+  // ist (unbekannt nach Ablauf der Pause, Bestaetigung faellig, Verdacht). Wartet nie.
+  function anstossen() {
+    if (laufend) return laufend;
+    const l = lage(), jetzt = uhr();
+    if (!l.k.zugang || l.k.webhookVorgabe) return Promise.resolve(id());
+    if (frisch(l, jetzt) || (fehler && jetzt < fehler.naechsterVersuch)) return Promise.resolve(id());
+    return sicherstellen();
+  }
+
+  // Signaturpruefung abgelehnt oder gescheitert: vielleicht gibt es den Webhook nicht mehr.
+  // Hoechstens alle verdachtAbstandMs einmal bei PayPal nachsehen.
+  function verdachtMelden() {
+    const l = lage(), jetzt = uhr();
+    if (!l.k.zugang) return;
+    if (l.k.webhookVorgabe) {
+      if (jetzt - letzteVorgabeWarnung >= verdachtAbstandMs) {
+        letzteVorgabeWarnung = jetzt;
+        log('warn', 'PayPal-Webhook: Signaturpruefung scheitert - PAYPAL_WEBHOOK_ID (von Hand) pruefen oder entfernen, dann stellt der Server den Webhook selbst sicher');
+      }
+      return;
+    }
+    if (jetzt - letzterVerdacht < verdachtAbstandMs) return;
+    letzterVerdacht = jetzt;
+    verdacht = true;
+    anstossen();
+  }
+
+  // Fuer die Statusauskunft: nur Klartext, keine Geheimwerte
+  function zustand() {
+    const l = lage();
+    const b = passt(bekannt, l) ? bekannt : null;
+    const vorgabe = l.k.zugang ? l.k.webhookVorgabe : null;
+    const iso = ms => (Number.isFinite(ms) ? new Date(ms).toISOString() : null);
+    return {
+      vorhanden:    !!(l.k.zugang && (vorgabe || b)),
+      quelle:       vorgabe ? 'von Hand (PAYPAL_WEBHOOK_ID, nicht geprueft)' : b ? QUELLE_TEXT[b.quelle] : null,
+      adresse:      l.adr.url || null,
+      id:           vorgabe || (b && b.id) || null,
+      ereignisse:   vorgabe ? null : b ? b.ereignisse : null,
+      zuletztBestaetigt: !vorgabe && b ? iso(b.bestaetigtAm) : null,
+      fehler:       l.adr.fehler || (fehler ? fehler.grund : null),
+      naechsterVersuch: fehler && !vorgabe ? iso(fehler.naechsterVersuch) : null,
+      laeuft:       !!laufend,
+    };
+  }
+
+  return { id, sicherstellen, anstossen, verdachtMelden, zustand };
+}
+
+// ─── Statusauskunft fuer den Betreiber (GET /api/admin/paypal) ───
+
+// Ersetzt Client-ID und Secret in allen Texten - falls je ein Fehlertext sie enthielte.
+function ohneGeheimnisse(wert, geheim) {
+  const liste = geheim.filter(g => typeof g === 'string' && g.trim().length >= 4).map(g => g.trim());
+  return JSON.parse(JSON.stringify(wert), (_k, v) =>
+    typeof v === 'string' ? liste.reduce((s, g) => s.split(g).join('***'), v) : v);
+}
+
+// probe: { ok, grund } der letzten Probe-Anmeldung oder null; webhook: verwalter.zustand();
+// sichtbar: Ergebnis von paypalBereit (das, was /api/config meldet).
+function paypalStatus({ env = {}, probe = null, webhook = {}, sichtbar = false }) {
+  const k = paypalKonfiguration(env);
+  const gesetzt = n => typeof env[n] === 'string' && env[n].trim() !== '';
+  const w = webhook || {};
+  const probeText = !k.zugang ? 'nicht versucht (Schluessel fehlen oder PAYPAL_ENV ist nicht live)'
+    : !probe ? 'noch nicht versucht'
+    : probe.ok ? 'ok' : `fehlgeschlagen: ${probe.grund || 'unbekannt'}`;
+  let naechsterSchritt;
+  if (!k.schluessel) naechsterSchritt = 'PAYPAL_CLIENT_ID und PAYPAL_CLIENT_SECRET der Live-REST-App des Ladens eintragen.';
+  else if (!k.live) naechsterSchritt = 'Schluessel stehen. Zum Scharfschalten PAYPAL_ENV=live setzen und den Dienst neu starten.';
+  else if (probe && !probe.ok) naechsterSchritt = 'Anmeldung bei PayPal scheitert: Client-ID und Secret der LIVE-App pruefen (keine Sandbox-Daten).';
+  else if (!w.vorhanden) naechsterSchritt = `Webhook noch nicht bereit${w.fehler ? ': ' + w.fehler : ''}. Der Server versucht es selbst erneut`
+    + `${w.naechsterVersuch ? ' (naechster Versuch ' + w.naechsterVersuch + ')' : ''}; sofort: diese Adresse mit ?erneut=1 aufrufen.`;
+  else if (sichtbar !== true) naechsterSchritt = 'Alles eingetragen, aber PayPal wird gerade nicht angeboten - Probe-Anmeldung pruefen.';
+  else naechsterSchritt = 'PayPal ist eingeschaltet und wird Gaesten angeboten.';
+  return ohneGeheimnisse({
+    schluesselGesetzt: { PAYPAL_CLIENT_ID: gesetzt('PAYPAL_CLIENT_ID'), PAYPAL_CLIENT_SECRET: gesetzt('PAYPAL_CLIENT_SECRET') },
+    modus: k.live ? 'live' : 'aus',
+    ...(k.live ? {} : { modusHinweis: gesetzt('PAYPAL_ENV')
+      ? 'PAYPAL_ENV ist gesetzt, aber nicht genau "live" - die Sandbox wird nie genutzt'
+      : 'PAYPAL_ENV fehlt - PayPal ist bewusst aus' }),
+    probeAnmeldung: probeText,
+    webhook: {
+      vorhanden: w.vorhanden === true, adresse: w.adresse || null, quelle: w.quelle || null, id: w.id || null,
+      ereignisse: w.ereignisse || null, zuletztBestaetigt: w.zuletztBestaetigt || null,
+      fehler: w.fehler || null, naechsterVersuch: w.naechsterVersuch || null,
+    },
+    fuerGaesteSichtbar: sichtbar === true,
+    naechsterSchritt,
+  }, [env.PAYPAL_CLIENT_SECRET, env.PAYPAL_CLIENT_ID]);
 }
 
 // ─── Wachhund und Aufraeumen (alle 5 Minuten) ────────────────────
@@ -459,8 +887,9 @@ async function wachhundLauf({ orders, client, speicher, jetzt = new Date(), fris
 }
 
 module.exports = {
-  LIVE_BASIS, PAYPAL_VARIABLEN, FRISTEN, WEBHOOK_EREIGNISSE, PaypalFehler,
-  paypalKonfiguration, paypalBereit, erstelleClient,
+  LIVE_BASIS, PAYPAL_VARIABLEN, FRISTEN, WEBHOOK_EREIGNISSE, WEBHOOK_PFAD, WEBHOOK_PAUSEN_MIN, PaypalFehler,
+  paypalKonfiguration, paypalBereit, erstelleProbe, erstelleClient,
+  webhookAdresse, webhookWaehlen, fehlendeEreignisse, erstelleWebhookVerwalter, paypalStatus,
   istPaypalId, betragPruefen, bestellungFuerPaypal, freigabeLink,
   einzugAus, gehoertZu, betragPasst, abgleichen,
   rueckkehrVerarbeiten, webhookVerarbeiten, ppOrderIdAusEreignis, wachhundLauf,
