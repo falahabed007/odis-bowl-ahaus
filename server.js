@@ -854,7 +854,9 @@ app.post('/api/create-stripe-checkout', async (req, res) => {
       statusToken
     });
     await order.save();
-    res.json({ url: session.url, orderNum });
+    // statusToken: Die Seite merkt ihn sich, um einen gespeicherten Warenkorb nach
+    // bezahlter Bestellung zu leeren, auch wenn der Gast nicht zurückkommt.
+    res.json({ url: session.url, orderNum, statusToken });
   } catch(e) { console.error(e); res.status(500).json({ message: 'Stripe Fehler: '+e.message }); }
 });
 

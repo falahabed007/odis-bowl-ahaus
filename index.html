@@ -1041,13 +1041,15 @@ button, input, select, textarea { font-family: inherit; }
     box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .7) !important;
     font-size: 14px !important; font-weight: 500 !important; letter-spacing: 0 !important; line-height: 1.35;
 }
-#odisbowl-closed-banner.odis-status-neutral { border-bottom-color: rgba(247, 155, 32, .4); }
+#odisbowl-closed-banner.odis-status-neutral,
+#odisbowl-closed-banner.odis-status-vorbestellung { border-bottom-color: rgba(247, 155, 32, .4); }
 #odisbowl-closed-banner a { color: var(--odis-schrift); text-decoration: none; border-bottom: 1px solid var(--o-gruen); white-space: nowrap; margin-left: .35rem; }
 .odis-zu-punkt {
     flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--odis-rot);
     box-shadow: 0 0 0 4px rgba(242, 107, 91, .18);
 }
-.odis-status-neutral .odis-zu-punkt { background: var(--o-orange); box-shadow: 0 0 0 4px rgba(247, 155, 32, .18); }
+.odis-status-neutral .odis-zu-punkt,
+.odis-status-vorbestellung .odis-zu-punkt { background: var(--o-orange); box-shadow: 0 0 0 4px rgba(247, 155, 32, .18); }
 body:has(#odisbowl-closed-banner) .cat-nav-wrap { top: calc(var(--o-kopf-h) + 52px); }
 #odisbowl-closed-toast, #odisbowl-so-toast {
     background: var(--odis-flaeche-2) !important; color: var(--odis-schrift) !important;
@@ -2029,6 +2031,7 @@ function artikelQtyChangeMobile(index, delta) {
 function toggleMobileCart() {}
 
 function renderWarenkorb() {
+    korbMerken();   // jeder Stand des Warenkorbs wird gemerkt (siehe WARENKORB MERKEN)
     const itemsContainer = document.getElementById('cart-items');
     const checkoutBtn = document.getElementById('checkout-btn');
     // Hinweise zu Lieferung, Mindestbestellwert und Açaí folgen dem Warenkorb
@@ -2218,6 +2221,78 @@ document.addEventListener('DOMContentLoaded', zeigeAuswahl);
 
 <script>
 let warenkorb = [];
+
+// ═══ WARENKORB MERKEN (Abed, 19.11.2026) ═══
+// Der Warenkorb bleibt im Browser des Gastes gespeichert (localStorage), bis die
+// Bestellung ausgelöst ist - auch über einen Neustart des Browsers. Verworfen wird
+// er nach 7 Tagen und sobald sich die Karte geändert hat (KARTEN_STAND), damit nie
+// zu alten Preisen bestellt wird. Gespeichert wird in renderWarenkorb().
+const KORB_SPEICHER = 'odisahaus_warenkorb';
+const KORB_MAX_ALTER = 7 * 24 * 60 * 60 * 1000;
+// Fingerabdruck der Karte, hier beim Einlesen der Seite genommen: Die Karten sind
+// an dieser Stelle noch so, wie karte-einsetzen.js sie geschrieben hat.
+const KARTEN_STAND = (function () {
+  let t = JSON.stringify(window.BAUKASTEN || {});
+  document.querySelectorAll('.product-item').forEach(el => { t += '|' + el.textContent.replace(/\s+/g, ' ').trim(); });
+  let h = 0;
+  for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0;
+  return String(h);
+})();
+let korbNichtMerken = false;   // nach ausgelöster Bestellung, bis der Abschluss geschlossen ist
+
+function korbLesen() {
+  try { return JSON.parse(localStorage.getItem(KORB_SPEICHER) || 'null'); } catch (e) { return null; }
+}
+function korbMerken() {
+  if (korbNichtMerken) return;
+  try {
+    const artikel = warenkorb.filter(i => !i.isFree);
+    if (!artikel.length) { localStorage.removeItem(KORB_SPEICHER); return; }
+    const alt = korbLesen();
+    localStorage.setItem(KORB_SPEICHER, JSON.stringify({
+      ts: Date.now(), stand: KARTEN_STAND, artikel,
+      zahlung: alt && alt.zahlung ? alt.zahlung : undefined
+    }));
+  } catch (e) { /* Speicher gesperrt oder voll: dann eben ohne */ }
+}
+// Bestellung ist raus: gespeicherten Korb sofort löschen. Der Korb im Fenster bleibt,
+// bis der Abschluss geschlossen wird (eine abgelehnte Bestellung lässt sich so wiederholen).
+function korbVergessen() {
+  korbNichtMerken = true;
+  try { localStorage.removeItem(KORB_SPEICHER); } catch (e) {}
+}
+// Vor der Weiterleitung zur Online-Zahlung: Schlüssel der Bestellung dazulegen. Kommt
+// der Gast nach der Zahlung nicht auf die Seite zurück, erkennt der nächste Besuch
+// daran, dass schon bezahlt ist, und leert den Korb.
+function korbZahlungMerken(schluessel) {
+  try {
+    const g = korbLesen();
+    if (!g || !schluessel) return;
+    g.zahlung = { t: schluessel, ts: Date.now() };
+    localStorage.setItem(KORB_SPEICHER, JSON.stringify(g));
+  } catch (e) {}
+}
+(function korbLaden() {
+  const g = korbLesen();
+  if (!g) return;
+  const gueltig = Array.isArray(g.artikel) && g.stand === KARTEN_STAND
+    && typeof g.ts === 'number' && Date.now() - g.ts < KORB_MAX_ALTER;
+  if (!gueltig) { try { localStorage.removeItem(KORB_SPEICHER); } catch (e) {} return; }
+  warenkorb = g.artikel.filter(i => i && typeof i.name === 'string' && typeof i.preis === 'number' && !i.isFree);
+  document.addEventListener('DOMContentLoaded', () => { if (warenkorb.length) renderWarenkorb(); });
+  if (g.zahlung && g.zahlung.t) {
+    // Wurde die angefangene Online-Zahlung inzwischen bezahlt? Dann ist das keine offene Auswahl mehr.
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch(BACKEND_URL + '/api/orders/status/' + encodeURIComponent(g.zahlung.t))
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (d && d.paymentStatus === 'paid') { warenkorb = []; renderWarenkorb(); }
+          else { const a = korbLesen(); if (a) { delete a.zahlung; localStorage.setItem(KORB_SPEICHER, JSON.stringify(a)); } }
+        })
+        .catch(() => {});
+    });
+  }
+})();
 
 // ═══ AKTION: kleine Pizza Margherita GRATIS ab 20 € ═══
 function isPromotionActive() {
@@ -3136,6 +3211,7 @@ async function processOrder() {
 
             const data = await response.json();
             if (data.url) {
+                korbZahlungMerken(data.statusToken);
                 window.location.href = data.url;
             } else {
                 // Der Server meldet, dass die Online-Zahlung gerade nicht geht (Konto des
@@ -3279,6 +3355,7 @@ function zeigeWarten() {
 }
 
 function starteWarten(daten) {
+    korbVergessen();   // Bestellung ist ausgelöst: gespeicherten Warenkorb löschen
     warteDaten = daten;
     warteStart = Date.now();
     document.getElementById('dankeOrderId').textContent = daten && daten.num ? '#' + String(daten.num).replace(/^#/, '') : '–';
@@ -3401,6 +3478,7 @@ function dankeSchliessen() {
     stoppeWarten();
     document.getElementById('dankeModal').style.display = 'none';
     warenkorb = [];
+    korbNichtMerken = false;
     renderWarenkorb();
 }
 
@@ -5430,6 +5508,9 @@ body.modal-open {
     ].join(';');
     banner.innerHTML = mode === 'neutral'
       ? '<span class="odis-zu-punkt" aria-hidden="true"></span><span>Wir arbeiten gerade an unserem Online-Bestellsystem – schau bald wieder vorbei!</span>'
+      : mode === 'vorbestellung'
+      // Nur wegen der Uhrzeit zu: Hinweis oben, aber nichts gesperrt (Abed, 19.11.2026)
+      ? '<span class="odis-zu-punkt" aria-hidden="true"></span><span>Wir haben gerade geschlossen – du kannst trotzdem alles auswählen und vorbestellen.<a href="#info">Öffnungszeiten</a></span>'
       : mode === 'manuell'
       // Laden hat an der Kasse von Hand geschlossen (z. B. Urlaub): auch keine Vorbestellung
       ? '<span class="odis-zu-punkt" aria-hidden="true"></span><span>Online-Bestellungen sind gerade nicht möglich.</span>'
@@ -5558,10 +5639,13 @@ body.modal-open {
       window.ODIS_STATUS = statusData;
 
       // Vorbestellung (19.11.2026): Ist der Laden nur wegen der Uhrzeit zu, meldet der
-      // Server bestellbar: true - dann kein Banner und nichts gesperrt; der Hinweis
-      // kommt erst in der Kasse. Ein Server ohne dieses Feld: Verhalten wie bisher.
+      // Server bestellbar: true - dann steht oben der Hinweis "geschlossen, du kannst
+      // vorbestellen", gesperrt wird nichts; in der Kasse folgt die Zeitwahl.
+      // Ein Server ohne dieses Feld: Verhalten wie bisher.
       const neu = typeof statusData.bestellbar === 'boolean';
-      if (neu ? statusData.bestellbar : mode === 'online') {
+      if (neu && statusData.bestellbar && mode !== 'online') {
+        showClosedBanner('vorbestellung');
+      } else if (neu ? statusData.bestellbar : mode === 'online') {
         hideClosedBanner();
       } else if (mode === 'neutral') {
         showClosedBanner('neutral');
