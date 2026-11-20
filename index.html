@@ -5420,9 +5420,9 @@ document.readyState === 'loading'
     'Açaí-Bowl': 'acai'
   };
 
-  // Bei jeder Aenderung an den Flaschenbildern hochzaehlen: Browser speichern
-  // Bilder von GitHub Pages 10 Minuten zwischen und zeigen sonst die alte Flasche.
-  var BILD_STAND = '2026-11-17a';
+  // Bei jeder Aenderung an den Flaschenbildern oder Kartenfotos hochzaehlen: Browser
+  // speichern Bilder von GitHub Pages 10 Minuten zwischen und zeigen sonst das alte Bild.
+  var BILD_STAND = '2026-11-20';
 
   // Getraenke: je Sorte eine eigene Flasche. Alle Flaschen einer Marke
   // stammen aus demselben Bild aus Odi’s Getraenkekarte und sind nur auf die
@@ -5605,7 +5605,7 @@ document.readyState === 'loading'
     if (imgFile || flasche) {
       var img = document.createElement('img');
       img.className = flasche ? 'card-img card-img-flasche' : 'card-img';
-      img.src = flasche ? 'img/menu/getraenke/sorten/' + flasche + '.png?v=' + BILD_STAND : 'img/menu/' + imgFile + '.jpg';
+      img.src = flasche ? 'img/menu/getraenke/sorten/' + flasche + '.png?v=' + BILD_STAND : 'img/menu/' + imgFile + '.jpg?v=' + BILD_STAND;
       img.alt = h3 ? h3.textContent.trim() : '';
       img.loading = 'lazy';
       img.onerror = function() { this.remove(); };
