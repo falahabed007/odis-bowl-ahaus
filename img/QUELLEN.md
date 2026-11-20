@@ -1,11 +1,11 @@
 # Bildquellen
 
-Alle Dateien unter menu/ am 17.11.2026 aus Odi's Bowl Oelde übernommen (gleiche Karte, gleiche Marke). Das Bühnenbild der Vorlage (hero-acai.jpg) ist bewusst nicht mitgekommen; an seiner Stelle steht hero-bowl.* (siehe Tabelle).
+Alle Dateien unter menu/ am 17.11.2026 aus Odi's Bowl Oelde übernommen (gleiche Karte, gleiche Marke). Das Bühnenbild der Vorlage (hero-acai.jpg) ist bewusst nicht mitgekommen; an seiner Stelle steht hero-bowls.* (siehe Tabelle).
 
 | Datei | Herkunft | Lizenz | Stand |
 |---|---|---|---|
-| hero-bowl.* | von Abed geliefert am 19.11.2026 (Bowl von oben mit Reis, Teriyaki-Hähnchen, Edamame, Gurke, Mango, Karotte, roten Zwiebeln auf hellem Grund); kreisrund freigestellt, Rand durchsichtig. Ersetzt das Foto vom 17.11.2026 | Rechte laut Abed geklärt (Annahme, bitte bestätigen) | hero-bowl.webp 840 x 840, hero-bowl-klein.webp 560 x 560 (Handy), hero-bowl.png 560 x 560 (Rückfall ohne WebP) |
-| acai-flyer.* | Açaí-Flyer des Ladens (Ahaus), von Abed am 19.11.2026 als PDF geliefert (abfotografiert), roter Fotorand beschnitten | Flyer des Kunden | 1100 x 1581, .webp und .jpg |
+| hero-bowls.* | von Abed am 20.11.2026 geliefert: Plakat „Bowl deiner Wahl“ des Ladens (1086 x 1448), zugeschnitten auf die vier Bowls in Kraftschalen (y 596–1448, ohne Plakatschrift und ohne die drei Deko-Striche); cremefarbener Plakatgrund freigestellt (durchsichtig), weiche Schatten als halbdurchsichtiges Braun erhalten; die hinteren Schalen sind am rechten Rand angeschnitten (so im Plakat). Ersetzt das Bild der einzelnen Bowl von oben vom 19.11.2026 | Rechte laut Abed geklärt (Annahme, bitte bestätigen) | hero-bowls.webp 1086 x 852, hero-bowls-klein.webp 720 x 565 (Handy), hero-bowls.png 720 x 565 (Rückfall ohne WebP), alle mit Alpha |
+| acai-becher.* | von Abed am 20.11.2026 geliefert: Plakat mit zwei Açaí-Bechern (Logo „ODI’s BOWL – Açaí Bowl & more“), ganzes Plakat unbeschnitten mit Plakatgrund. Ersetzt den Açaí-Flyer vom 19.11.2026 | Rechte laut Abed geklärt (Annahme, bitte bestätigen) | 1086 x 1448, .webp und .jpg |
 | menu/bowl.jpg | rawpixel, „Free vegan falafel image“ – https://www.rawpixel.com/image/5918629/image-public-domain-greens-food (über Openverse) | CC0 1.0, keine Namensnennung nötig | Zuschnitt 4:3, 683 x 512 |
 | menu/wrap.jpg | rawpixel, „Free healthy vegan wraps image“ – https://www.rawpixel.com/image/5927972/photo-image-public-domain-wood-food | CC0 1.0 | Zuschnitt 4:3, 683 x 512 |
 | menu/acai.jpg | rawpixel, „Healthy smoothie acai bowl berries“ – https://www.rawpixel.com/image/3282999/free-photo-image-organic-food-healthy-breakfast-bowl | CC0 1.0 | Zuschnitt 4:3, 912 x 684 |
